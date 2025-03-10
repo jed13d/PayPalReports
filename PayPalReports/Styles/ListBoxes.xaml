@@ -1,0 +1,128 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="ListBox.Tab.Static.Background" Color="#FF333333"/>
+    <SolidColorBrush x:Key="ListBox.Tab.Static.Border" Color="#FF333333"/>
+    <SolidColorBrush x:Key="ListBox.Tab.Static.Foreground" Color="#FF9C9C9C"/>
+    <SolidColorBrush x:Key="ListBox.Tab.Disabled.Background" Color="#FF1F1F1F"/>
+    <SolidColorBrush x:Key="ListBox.Tab.Disabled.Border" Color="#FF696969"/>
+    <SolidColorBrush x:Key="ListBox.Tab.Disabled.Foreground" Color="#FF696969"/>
+
+    <SolidColorBrush x:Key="ListBoxItem.Tab.Static.Background" Color="#FF2C2C2C"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.Static.Border" Color="#FF2C2C2C"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.Static.Foreground" Color="#FF9C9C9C"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.MouseOver.Background" Color="#FF3D3D3D"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.MouseOver.Border" Color="#FF3D3D3D"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.MouseOver.Foreground" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedActive.Background" Color="#FF3D3D3D"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedActive.Border" Color="#FF716EFF"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedActive.Foreground" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedInactive.Background" Color="#FF3D3D3D"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedInactive.Border" Color="#FF716EFF"/>
+    <SolidColorBrush x:Key="ListBoxItem.Tab.SelectedInactive.Foreground" Color="#FFFFFFFF"/>
+    
+    <Style x:Key="ListBoxTabRowStyle" TargetType="{x:Type ListBox}">
+        <Setter Property="Background" Value="{StaticResource ListBox.Tab.Static.Background}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ListBox.Tab.Static.Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource ListBox.Tab.Static.Foreground}"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+        <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBox}">
+                    <Border x:Name="Bd" CornerRadius="5,5,0,0" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" Padding="1" SnapsToDevicePixels="true" >
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" IsItemsHost="True"/>
+                        </ScrollViewer>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBox.Tab.Disabled.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBox.Tab.Disabled.Border}"/>
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{StaticResource ListBox.Tab.Disabled.Foreground}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsGrouping" Value="true"/>
+                                <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ListBoxItem Tab Style-->
+    <Style x:Key="FocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="2" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ListBoxItemTabStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Padding" Value="5,0,5,5"/>
+        <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+        <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0,2,0,0"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.MouseOver.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.MouseOver.Border}"/>
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.MouseOver.Foreground}"/>
+                            <Setter Property="TextElement.FontWeight" TargetName="Bd" Value="Bold"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                <Condition Property="IsSelected" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedInactive.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedInactive.Border}"/>
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedInactive.Foreground}"/>
+                            <Setter Property="TextElement.FontWeight" TargetName="Bd" Value="Bold"/>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                <Condition Property="IsSelected" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedActive.Background}"/>
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedActive.Border}"/>
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{StaticResource ListBoxItem.Tab.SelectedActive.Foreground}"/>
+                            <Setter Property="TextElement.FontWeight" TargetName="Bd" Value="Bold"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
