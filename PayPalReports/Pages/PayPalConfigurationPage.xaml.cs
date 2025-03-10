@@ -19,22 +19,6 @@ namespace PayPalReports.Pages
             TestConfigurationStatus();
         }
 
-        private void LoadButton_Click(object sender, RoutedEventArgs e)
-        {
-            DataEncryptionService des = new();
-
-            string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
-            Debug.WriteLine($"fileData as single string:\n{fileData}");
-
-            Debug.WriteLine($"fileData as array:");
-            String[] apiData = fileData.Split('\n');
-            int i = 0;
-            foreach (string line in apiData)
-            {
-                Debug.WriteLine($"index: {i++}, value:{line}");
-            }
-        }
-
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             DataEncryptionService des = new();
