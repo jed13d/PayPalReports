@@ -39,10 +39,7 @@
         <TextBox Name="ClientID" Text="some ID" Grid.Column="1" Grid.Row="4" Style="{StaticResource TextBoxInputStyle}" />
         <TextBox Name="ClientKey" Text="some key" Grid.Column="1" Grid.Row="5" Style="{StaticResource TextBoxInputStyle}" />
 
-        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="6" >
         <Button Content="Save" Click="SaveButton_Click" Grid.Column="0" Grid.Row="6" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Button Content="Load" Click="LoadButton_Click" Grid.Column="0" Grid.Row="6" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </StackPanel>
 
         <TextBlock x:Name="ConfigStatusBlock" Style="{StaticResource TextBlockStatusStyle}" Text="Sample text" Grid.Column="1" Grid.Row="6" />
     </Grid>
