@@ -1,5 +1,4 @@
 ﻿using PayPalReports.Services;
-using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,7 +22,7 @@ namespace PayPalReports.Pages
         {
             DataEncryptionService des = new();
 
-            Debug.WriteLine("Calling encryption service to store data.");
+            // Calling encryption service to store data
             if (des.StoreData(CreateDataString(), PAYPAL_DATA_FILE))
             {
                 UpdateStatusText(DATA_SAVED);
@@ -41,6 +40,9 @@ namespace PayPalReports.Pages
             ClientKey.Text = "";
         }
 
+        /**
+         * Converts the data from forms to single string formatted with a '\n' delimiter
+         * */
         private byte[] CreateDataString()
         {
             StringBuilder sb = new StringBuilder();
@@ -55,6 +57,9 @@ namespace PayPalReports.Pages
             return UnicodeEncoding.ASCII.GetBytes(sb.ToString());
         }
 
+        /**
+         * Tests for the existance of a configuration file and provides the UI with the status
+         * */
         private void TestConfigurationStatus()
         {
             DataEncryptionService des = new();
@@ -65,6 +70,10 @@ namespace PayPalReports.Pages
             }
         }
 
+        /**
+         * Method for messaging the user through the UI
+         * (maybe pull this out and make event driven at bottom of window)
+         * */
         private void UpdateStatusText(string message)
         {
             ConfigStatusBlock.Text = message;
