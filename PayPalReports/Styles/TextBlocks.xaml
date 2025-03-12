@@ -2,7 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <SolidColorBrush x:Key="TextBlock.Title.Static.Foreground" Color="#FF9C9C9C"/>
-    <SolidColorBrush x:Key="TextBlock.Title.Status.Foreground" Color="#FFAADDAA"/>
+    <SolidColorBrush x:Key="TextBlock.Status.Static.Background" Color="#FF1F1F1F"/>
+    <SolidColorBrush x:Key="TextBlock.Status.Static.Foreground" Color="#FFAADDAA"/>
 
     <Style x:Key="TextBlockTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="14"/>
@@ -15,10 +16,13 @@
     </Style>
 
     <Style x:Key="TextBlockStatusStyle" TargetType="{x:Type TextBlock}">
-        <Setter Property="Foreground" Value="{StaticResource TextBlock.Title.Status.Foreground}"/>
+        <Setter Property="Background" Value="{StaticResource TextBlock.Status.Static.Background}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBlock.Status.Static.Foreground}"/>
+        <Setter Property="Height" Value="55"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="TextAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="Padding" Value="5"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
 

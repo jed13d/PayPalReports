@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using PayPalReports.CustomEvents;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -8,11 +9,14 @@ namespace PayPalReports
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IStatusEventListener
     {
+
         public MainWindow()
         {
             InitializeComponent();
+
+            StatusEvent.RegisterListener(this);
 
             // some other initialization
             restoreButton.Visibility = Visibility.Collapsed;
@@ -71,6 +75,21 @@ namespace PayPalReports
         private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        /**
+         * Event-Driven method for messaging the user through the UI
+         * */
+        public void UpdateStatusEvent(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                StatusTextBlock.Text = "";
+            }
+            else
+            {
+                StatusTextBlock.Text = message;
+            }
         }
 
         // The following is only for proper maximizing of the window (may remove resizing)

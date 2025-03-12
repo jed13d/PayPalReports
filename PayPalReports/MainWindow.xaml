@@ -7,7 +7,7 @@
         xmlns:svg="http://sharpvectors.codeplex.com/runtime/"
         xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
-        Title="PayPal Reports" Height="350" Width="600"
+        Title="PayPal Reports" Height="410" Width="600"
         WindowStyle="None">
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0" />
@@ -156,6 +156,9 @@
                     Configuration
                 </local:NavTab>
             </ListBox>
+
+            <!-- Bottom Status Bar-->
+            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="Sample&#x0a;text&#x0a;text" />
 
             <!-- Content -->
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="Fuchsia" />

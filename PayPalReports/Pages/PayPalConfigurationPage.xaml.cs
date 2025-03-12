@@ -1,4 +1,5 @@
-﻿using PayPalReports.Services;
+﻿using PayPalReports.CustomEvents;
+using PayPalReports.Services;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -76,7 +77,7 @@ namespace PayPalReports.Pages
          * */
         private void UpdateStatusText(string message)
         {
-            ConfigStatusBlock.Text = message;
+            StatusEvent.Raise(message);
         }
     }
 }
