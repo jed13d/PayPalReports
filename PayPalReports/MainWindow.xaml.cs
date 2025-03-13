@@ -24,7 +24,7 @@ namespace PayPalReports
 
         private void ListBoxTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var navtab = TabRow.SelectedItem as NavTab;
+            NavTab? navtab = TabRow.SelectedItem as NavTab;
             if (navtab != null)
             {
                 ContentFrame.Navigate(navtab.NavLink);
@@ -53,6 +53,8 @@ namespace PayPalReports
 
         private void TitleBar_MaximizeRestoreButtonClick(object sender, RoutedEventArgs e)
         {
+            Debug.WriteLine($"{this.RestoreBounds}");
+            Debug.WriteLine($"{this.Top}");
             if (this.WindowState == WindowState.Maximized)
             {
                 this.WindowState = WindowState.Normal;
@@ -72,8 +74,16 @@ namespace PayPalReports
             this.WindowState = WindowState.Minimized;
         }
 
+        /**
+         * Notes for restoring
+         *      RestoreBounds   - need to modify position to curser position
+         * */
         private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            if (this.WindowState == WindowState.Maximized)
+            {
+                TitleBar_MaximizeRestoreButtonClick(sender, e);
+            }
             DragMove();
         }
 

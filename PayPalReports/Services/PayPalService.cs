@@ -21,14 +21,13 @@ namespace PayPalReports.Services
         private readonly int ID = 4;
         private readonly int KEY = 5;
 
+        private readonly string END_DATE_PARAMTER = "end_date";
+        private readonly string FIELDS_PARAMETER = "fields=transaction_info,payer_info";
+        private readonly string START_DATE_PARAMTER = "start_date";
+        private readonly string PAGE_SIZE_PARAMETER = "page_size=500";
+
         private readonly string PAYPAL_TRANSACTION_HISTORY_ENDPOINT = "/v1/reporting/transactions";
-        /*      * required
-         * start_date   * (f/e)     -   string [20 - 64] characters         internet date/time format  yyyy-mm-ddThh:mm:ss
-         * end_date     * (f/e)     -   ''
-         * fields        (backend)  -   string  desired - "transaction_info,payer_info"
-         * page_size    (be)        -   int     1-500 (default-100)
-         * page         (be)        -   int     default 1
-         * */
+
         private readonly string PAYPAL_BALANCE_ENDPOINT = "/v1/reporting/balances";
         /*  requires TOKEN
          *  as_of_time              -   string [20 - 64] characters         internet date/time format  yyyy-mm-ddThh:mm:ss
@@ -67,6 +66,49 @@ namespace PayPalReports.Services
             string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
 
             _apiData = fileData.Split('\n');
+        }
+
+        // request transaction info
+        // request balance info
+        // actual call for all data (and store into a file -- another class? reportprocessingservice?)
+        // fields in xaml for paramters needed (start / end dates, report type)
+        //      remember to disable sumbit buttons upon submission / and release them upon completion
+
+        private string GetStartDateParameter()
+        {
+            return "";
+        }
+        private async Task RequestTransactionInfo(PayPalReportDetails ppReportDetails)
+        {
+            if (_tokenData != null)
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Setup Headers
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("en_US"));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(_tokenData.token_type, _tokenData.access_token);
+
+                    // Prepare Request Parameters
+                    string endDate = $"{END_DATE_PARAMTER}={ppReportDetails.EndDate}";
+                    string startDate = $"{START_DATE_PARAMTER}={ppReportDetails.StartDate}";
+
+                    // Construct URL
+                    string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
+
+                    // Send GET request
+                    var response = await client.GetStreamAsync(transactionURL);
+
+                    // Convert to objects through Json Deserialization
+                }
+            }
+            /*      * required          Request Parameters
+             * start_date   * (f/e)     -   string [20 - 64] characters         internet date/time format  yyyy-mm-ddThh:mm:ss
+             * end_date     * (f/e)     -   ''
+             * fields        (backend)  -   string  desired - "transaction_info,payer_info"
+             * page_size    (be)        -   int     1-500 (default-100)
+             * page         (be)        -   int     default 1
+             * */
         }
 
         private async Task RequestToken()
