@@ -8,6 +8,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/Buttons.xaml" />
+                <ResourceDictionary Source="/Styles/DatePickers.xaml" />
                 <ResourceDictionary Source="/Styles/ListBoxes.xaml" />
                 <ResourceDictionary Source="/Styles/Menus.xaml" />
                 <ResourceDictionary Source="/Styles/TextBlocks.xaml" />
@@ -18,7 +19,6 @@
             <SolidColorBrush x:Key="Standard.Static.Border" Color="#FF1F1F1F"/>
             <SolidColorBrush x:Key="Standard.Static.Foreground" Color="#FF9C9C9C"/>
             <SolidColorBrush x:Key="FrogIcon.Static.Foreground" Color="#FFAADDAA"/>
-            
         </ResourceDictionary>
         
     </Application.Resources>
