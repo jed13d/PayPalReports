@@ -24,6 +24,7 @@
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
+        <!-- Labels -->
         <TextBox Text="PayPal URL:" Grid.Column="0" Grid.Row="0" Style="{StaticResource TextBoxLabelStyle}" />
         <TextBox Text="Region:" Grid.Column="0" Grid.Row="1" Style="{StaticResource TextBoxLabelStyle}" />
         <TextBox Text="Email:" Grid.Column="0" Grid.Row="2" Style="{StaticResource TextBoxLabelStyle}" />
@@ -31,6 +32,7 @@
         <TextBox Text="Client ID:" Grid.Column="0" Grid.Row="4" Style="{StaticResource TextBoxLabelStyle}" />
         <TextBox Text="Client Key:" Grid.Column="0" Grid.Row="5" Style="{StaticResource TextBoxLabelStyle}" />
 
+        <!-- Forms -->
         <!--<TextBox Name="PayPalURL" Text="https://api-m.paypal.com" Grid.Column="1" Grid.Row="0" Style="{StaticResource TextBoxInputStyle}" />-->
         <TextBox Name="PayPalURL" Text="https://api-m.sandbox.paypal.com" Grid.Column="1" Grid.Row="0" Style="{StaticResource TextBoxInputStyle}" />
         <TextBox Name="Region" Text="us" Grid.Column="1" Grid.Row="1" Style="{StaticResource TextBoxInputStyle}" />
