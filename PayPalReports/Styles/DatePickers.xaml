@@ -180,8 +180,55 @@
         </Setter>
     </Style>
 
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.Static.Background" Color="#FFBCBCBC"/>
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.Static.Border" Color="#FFACACAC"/>
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.Static.Foreground" Color="#FF000000"/>
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.MouseOver.Border" Color="#FF716EFF"/>
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.Focus.Background" Color="#FFACACAC"/>
+    <SolidColorBrush x:Key="DatePickerTextBox.Input.Focus.Border" Color="#FF716EFF"/>
+
+    <Style TargetType="{x:Type DatePickerTextBox}">
+        <Setter Property="Background" Value="{StaticResource DatePickerTextBox.Input.Static.Background}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DatePickerTextBox.Input.Static.Border}" />
+        <Setter Property="Foreground" Value="{StaticResource DatePickerTextBox.Input.Static.Foreground}" />
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DatePickerTextBox}">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Opacity" TargetName="border" Value="0.56"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="BorderBrush" Value="{StaticResource DatePickerTextBox.Input.MouseOver.Border}"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DatePickerTextBox.Input.Focus.Background}"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource DatePickerTextBox.Input.Focus.Border}"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsInactiveSelectionHighlightEnabled" Value="true"/>
+                    <Condition Property="IsSelectionActive" Value="false"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="SelectionBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="{x:Type DatePicker}">
         <Setter Property="Foreground" Value="#FF000000" />
+        <Setter Property="Background" Value="#FFBCBCBC" />
         <Setter Property="IsTodayHighlighted" Value="True" />
         <Setter Property="SelectedDateFormat" Value="Short" />
         <Setter Property="Margin" Value="3"/>
@@ -224,7 +271,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Button x:Name="PART_Button" Grid.Column="1" Foreground="{TemplateBinding Foreground}" Focusable="False" HorizontalAlignment="Left" Margin="3,0,3,0" Grid.Row="0" Style="{StaticResource DropDownButtonStyle}" VerticalAlignment="Top" />
-                            <DatePickerTextBox x:Name="PART_TextBox" Grid.Column="0" Foreground="{TemplateBinding Foreground}" Focusable="{TemplateBinding Focusable}" HorizontalContentAlignment="Stretch" Grid.Row="0" VerticalContentAlignment="Stretch" />
+                            <DatePickerTextBox x:Name="PART_TextBox" Grid.Column="0" Grid.Row="0" Focusable="{TemplateBinding Focusable}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                             <Grid x:Name="PART_DisabledVisual" Grid.ColumnSpan="2" Grid.Column="0" IsHitTestVisible="False" Opacity="0" Grid.Row="0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
