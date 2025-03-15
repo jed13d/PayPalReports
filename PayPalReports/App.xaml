@@ -8,6 +8,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/Buttons.xaml" />
+                <ResourceDictionary Source="/Styles/Calendars.xaml" />
                 <ResourceDictionary Source="/Styles/DatePickers.xaml" />
                 <ResourceDictionary Source="/Styles/ListBoxes.xaml" />
                 <ResourceDictionary Source="/Styles/Menus.xaml" />
