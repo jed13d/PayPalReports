@@ -2,7 +2,14 @@
 {
     class PayPalReportDetails
     {
-        public DateTime EndDate { get; set; }
-        public DateTime StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string StartDate { get; set; }
+        public PayPalTransactionResponse.PayPalTransactionResponse? PayPalTransactionResponse { get; set; }
+
+        public PayPalReportDetails()
+        {
+            EndDate = "";
+            StartDate = "";
+        }
     }
 }
