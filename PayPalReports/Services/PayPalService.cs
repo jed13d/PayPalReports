@@ -1,4 +1,7 @@
-﻿using PayPalReports.DataModels;
+﻿using PayPalReports.CustomEvents;
+using PayPalReports.DataModels;
+using PayPalReports.DataModels.PayPalTransactionResponse;
+using PayPalReports.Globals;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,29 +14,30 @@ namespace PayPalReports.Services
     {
         private string[] _apiData = new string[6];
         private PayPalTokenResponse? _tokenData;
+        private PayPalReportDetails? _payPalReportDetails;
 
         private readonly string PAYPAL_DATA_FILE = "pdata.dat";
 
         private readonly int URL = 0;
-        private readonly int REGION = 1;
-        private readonly int EMAIL = 2;
-        private readonly int PASSWORD = 3;
         private readonly int ID = 4;
         private readonly int KEY = 5;
 
+        private readonly int MAX_REQUEST_RETRYS = 5;
+
+        private readonly string AS_OF_TIME = "as_of_time";
         private readonly string END_DATE_PARAMTER = "end_date";
         private readonly string FIELDS_PARAMETER = "fields=transaction_info,payer_info";
         private readonly string START_DATE_PARAMTER = "start_date";
         private readonly string PAGE_SIZE_PARAMETER = "page_size=500";
 
+        private readonly string HEADER_ACCEPTS = "application/json";
+        private readonly string HEADER_LANGUAGE = "en_US";
+        private readonly string HEADER_TOKEN_AUTH = "Basic";
+        private readonly string CONTENT_TOKEN_GRANT_KEY = "grant_type";
+        private readonly string CONTENT_TOKEN_GRANT_VALUE = "client_credentials";
+
         private readonly string PAYPAL_TRANSACTION_HISTORY_ENDPOINT = "/v1/reporting/transactions";
-
         private readonly string PAYPAL_BALANCE_ENDPOINT = "/v1/reporting/balances";
-        /*  requires TOKEN
-         *  as_of_time              -   string [20 - 64] characters         internet date/time format  yyyy-mm-ddThh:mm:ss
-         * 
-         * */
-
         private readonly string PAYPAL_OAUTH_TOKEN_ENDPOINT = "/v1/oauth2/token";
 
         public PayPalService()
@@ -41,21 +45,63 @@ namespace PayPalReports.Services
             LoadApiInfo();
         }
 
-        public async Task<bool> TestTokenRequest()
+        /// <summary>
+        /// Calls the various PayPal API endpoints and loads the PayPalReportDetails argument with the returned data.
+        /// </summary>
+        /// <param name="payPalReportDetails">The PayPal data context object.</param>
+        /// <returns>Boolean value reporting the success of the method.</returns>
+        public bool TryGetPayPalData(ref PayPalReportDetails payPalReportDetails)
         {
-            bool returnValue = false;
+            bool success = false;
 
-            if (_tokenData == null)     // if the token exists, no reason to get a new one
+            // Basic null check
+            if (payPalReportDetails != null && !string.IsNullOrEmpty(payPalReportDetails.StartDate) && !string.IsNullOrEmpty(payPalReportDetails.EndDate))
             {
-                await RequestToken();
+                _payPalReportDetails = payPalReportDetails;
+                RequestReportData();
+                payPalReportDetails = _payPalReportDetails;
+                success = true;
             }
+            else
+            {
+                UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+            }
+
+            return success;
+        }
+
+        /**
+         * Outer-most private method for the various API calls to PayPal, gathering the various data required.
+         * Delays are sprinkled in to throttle the API calls
+         * */
+        private async void RequestReportData()
+        {
+            // if the token is cached, no reason to get a new one
+            if (_tokenData == null)
+            {
+                UpdateStatusText($"{StandardMessages.PAYPAL_GETTING_TOKEN}");
+
+                await RequestToken();
+                Task.Delay(100).Wait();
+            }
+
 
             if (_tokenData != null)
             {
-                returnValue = true;
-            }
+                Task transactionRequest = RequestTransactionInfo();
+                Task.Delay(10).Wait();
+                Task sBalanceRequest = RequestBalance(_payPalReportDetails!.StartDate);
+                Task.Delay(10).Wait();
+                Task eBalanceRequest = RequestBalance(_payPalReportDetails!.EndDate);
 
-            return returnValue;
+                await sBalanceRequest;
+                await eBalanceRequest;
+                await transactionRequest;
+            }
+            else
+            {
+                UpdateStatusText($"{StandardMessages.PAYPAL_FAILED_GETTING_TOKEN}");
+            }
         }
 
 
@@ -68,47 +114,40 @@ namespace PayPalReports.Services
             _apiData = fileData.Split('\n');
         }
 
-        // request transaction info
-        // request balance info
-        // actual call for all data (and store into a file -- another class? reportprocessingservice?)
-        // fields in xaml for paramters needed (start / end dates, report type)
-        //      remember to disable sumbit buttons upon submission / and release them upon completion
 
-        private string GetStartDateParameter()
-        {
-            return "";
-        }
-        private async Task RequestTransactionInfo(PayPalReportDetails ppReportDetails)
+        private async Task RequestBalance(string atTime)
         {
             if (_tokenData != null)
             {
                 using (HttpClient client = new HttpClient())
                 {
                     // Setup Headers
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("en_US"));
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HEADER_ACCEPTS));
+                    client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(HEADER_LANGUAGE));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(_tokenData.token_type, _tokenData.access_token);
 
                     // Prepare Request Parameters
-                    string endDate = $"{END_DATE_PARAMTER}={ppReportDetails.EndDate}";
-                    string startDate = $"{START_DATE_PARAMTER}={ppReportDetails.StartDate}";
+                    string timeParameter = $"{AS_OF_TIME}={atTime}";
 
                     // Construct URL
-                    string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
+                    string transactionURL = $"{_apiData[URL]}{PAYPAL_BALANCE_ENDPOINT}?{timeParameter}";
 
                     // Send GET request
-                    var response = await client.GetStreamAsync(transactionURL);
+                    var response = await client.GetAsync(transactionURL);
 
                     // Convert to objects through Json Deserialization
+                    var transactionResponse = await JsonSerializer.DeserializeAsync<PayPalTransactionResponse>(response.Content.ReadAsStream());
+
+                    if (transactionResponse != null)
+                    {
+                        _payPalReportDetails!.PayPalTransactionResponse = transactionResponse;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to get balance data from {transactionURL}");
+                    }
                 }
             }
-            /*      * required          Request Parameters
-             * start_date   * (f/e)     -   string [20 - 64] characters         internet date/time format  yyyy-mm-ddThh:mm:ss
-             * end_date     * (f/e)     -   ''
-             * fields        (backend)  -   string  desired - "transaction_info,payer_info"
-             * page_size    (be)        -   int     1-500 (default-100)
-             * page         (be)        -   int     default 1
-             * */
         }
 
         private async Task RequestToken()
@@ -116,43 +155,114 @@ namespace PayPalReports.Services
             using (HttpClient client = new HttpClient())
             {
                 // Setup Headers
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue("en_US"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HEADER_ACCEPTS));
+                client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(HEADER_LANGUAGE));
 
-                var base64encoded = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_apiData[ID]}:{_apiData[KEY]}"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64encoded);
+                // unlikely an error will occur here, but prepare anyway
+                try
+                {
+                    var base64encoded = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_apiData[ID]}:{_apiData[KEY]}"));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(HEADER_TOKEN_AUTH, base64encoded);
+                }
+                catch (Exception ex)
+                {
+                    UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                    Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                    Debug.WriteLine(ex);
+                    return;
+                }
 
                 // Setup Content Data
-                var keyValues = new List<KeyValuePair<string, string>>();
-                keyValues.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
+                List<KeyValuePair<string, string>> keyValues = [new KeyValuePair<string, string>(CONTENT_TOKEN_GRANT_KEY, CONTENT_TOKEN_GRANT_VALUE)];
 
-                // Send POST request 
+                // Build URI
                 string token_uri = _apiData[URL] + PAYPAL_OAUTH_TOKEN_ENDPOINT;
-                var responseMessage = await client.PostAsync(token_uri, new FormUrlEncodedContent(keyValues));
 
-                // Stream the responseMessage through Json Deserializer, converting to usable object
-                var tokenData = await JsonSerializer.DeserializeAsync<PayPalTokenResponse>(responseMessage.Content.ReadAsStream());
-
-                if (tokenData != null)
+                // Multi-attempt request loop
+                bool successfulRequest = false;
+                for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
                 {
-                    _tokenData = tokenData;
-                }
-                else
-                {
-                    Debug.WriteLine($"Failed to get token from {token_uri}");
-                }
+                    // Send POST request 
+                    var response = await client.PostAsync(token_uri, new FormUrlEncodedContent(keyValues));
 
-                /*      Sample Response for token
+                    if (response.IsSuccessStatusCode && response.Content != null)
                     {
-                      "scope": "https://uri.paypal.com/services/invoicing https://uri.paypal.com/services/disputes/read-buyer https://uri.paypal.com/services/payments/realtimepayment https://uri.paypal.com/services/disputes/update-seller https://uri.paypal.com/services/payments/payment/authcapture openid https://uri.paypal.com/services/disputes/read-seller https://uri.paypal.com/services/payments/refund https://api-m.paypal.com/v1/vault/credit-card https://api-m.paypal.com/v1/payments/.* https://uri.paypal.com/payments/payouts https://api-m.paypal.com/v1/vault/credit-card/.* https://uri.paypal.com/services/subscriptions https://uri.paypal.com/services/applications/webhooks",
-                      "access_token": "A21AAFEpH4PsADK7qSS7pSRsgzfENtu-Q1ysgEDVDESseMHBYXVJYE8ovjj68elIDy8nF26AwPhfXTIeWAZHSLIsQkSYz9ifg",
-                      "token_type": "Bearer",
-                      "app_id": "APP-80W284485P519543T",
-                      "expires_in": 31668,
-                      "nonce": "2020-04-03T15:35:36ZaYZlGvEkV4yVSz8g6bAKFoGSEzuy3CQcz3ljhibkOHg"
+                        try
+                        {
+                            // Stream the responseMessage through Json Deserializer, converting to usable object
+                            _tokenData = await JsonSerializer.DeserializeAsync<PayPalTokenResponse>(response.Content.ReadAsStream());
+                            successfulRequest = true;
+                        }
+                        catch (Exception ex) when (ex is ArgumentNullException
+                                                || ex is InvalidOperationException
+                                                || ex is HttpRequestException
+                                                || ex is TaskCanceledException
+                                                || ex is EncoderFallbackException)
+                        {
+                            UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                            Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                            Debug.WriteLine(ex);
+                        }
+                        catch (Exception ex) when (ex is UriFormatException
+                                                || ex is JsonException
+                                                || ex is NotSupportedException)
+                        {
+                            UpdateStatusText($"{StandardMessages.POSSIBLE_PAYPAL_API_CHANGE}");
+                            Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                            Debug.WriteLine(ex);
+                        }
                     }
-                * */
+                    if (successfulRequest)
+                    {
+                        break;
+                    }
+                }   // end for
+            }   // end using
+        }   // end RequestToken
+
+        private async Task RequestTransactionInfo()
+        {
+            if (_tokenData != null)
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    // Setup Headers
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HEADER_ACCEPTS));
+                    client.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(HEADER_LANGUAGE));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(_tokenData.token_type, _tokenData.access_token);
+
+                    // Prepare Request Parameters
+                    string endDate = $"{END_DATE_PARAMTER}={_payPalReportDetails!.EndDate}";
+                    string startDate = $"{START_DATE_PARAMTER}={_payPalReportDetails!.StartDate}";
+
+                    // Construct URL
+                    string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
+
+                    // Send GET request
+                    var response = await client.GetAsync(transactionURL);
+
+                    // Convert to objects through Json Deserialization
+                    var transactionResponse = await JsonSerializer.DeserializeAsync<PayPalTransactionResponse>(response.Content.ReadAsStream());
+
+                    if (transactionResponse != null)
+                    {
+                        this._payPalReportDetails!.PayPalTransactionResponse = transactionResponse;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to get transaction data from {transactionURL}");
+                    }
+                }
             }
+        }
+
+        /**
+         * Method for messaging the user through the UI
+         * (maybe pull this out and make event driven at bottom of window)
+         * */
+        private void UpdateStatusText(string message)
+        {
+            StatusEvent.Raise(message);
         }
     }
 }
