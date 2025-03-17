@@ -1,5 +1,6 @@
 ﻿using PayPalReports.CustomEvents;
 using PayPalReports.DataModels;
+using PayPalReports.DataModels.PayPalBalanceResponse;
 using PayPalReports.DataModels.PayPalTransactionResponse;
 using PayPalReports.Globals;
 using System.Diagnostics;
@@ -39,6 +40,11 @@ namespace PayPalReports.Services
         private readonly string PAYPAL_TRANSACTION_HISTORY_ENDPOINT = "/v1/reporting/transactions";
         private readonly string PAYPAL_BALANCE_ENDPOINT = "/v1/reporting/balances";
         private readonly string PAYPAL_OAUTH_TOKEN_ENDPOINT = "/v1/oauth2/token";
+
+        private enum BalanceDateType
+        {
+            Start = 0, End = 1
+        }
 
         public PayPalService()
         {
@@ -90,9 +96,9 @@ namespace PayPalReports.Services
             {
                 Task transactionRequest = RequestTransactionInfo();
                 Task.Delay(10).Wait();
-                Task sBalanceRequest = RequestBalance(_payPalReportDetails!.StartDate);
+                Task sBalanceRequest = RequestBalance(_payPalReportDetails!.StartDate, BalanceDateType.Start);
                 Task.Delay(10).Wait();
-                Task eBalanceRequest = RequestBalance(_payPalReportDetails!.EndDate);
+                Task eBalanceRequest = RequestBalance(_payPalReportDetails!.EndDate, BalanceDateType.End);
 
                 await sBalanceRequest;
                 await eBalanceRequest;
@@ -115,7 +121,7 @@ namespace PayPalReports.Services
         }
 
 
-        private async Task RequestBalance(string atTime)
+        private async Task RequestBalance(string atTime, BalanceDateType balanceDateType)
         {
             if (_tokenData != null)
             {
@@ -132,23 +138,59 @@ namespace PayPalReports.Services
                     // Construct URL
                     string transactionURL = $"{_apiData[URL]}{PAYPAL_BALANCE_ENDPOINT}?{timeParameter}";
 
-                    // Send GET request
-                    var response = await client.GetAsync(transactionURL);
-
-                    // Convert to objects through Json Deserialization
-                    var transactionResponse = await JsonSerializer.DeserializeAsync<PayPalTransactionResponse>(response.Content.ReadAsStream());
-
-                    if (transactionResponse != null)
+                    // Multi-attempt request loop
+                    for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
                     {
-                        _payPalReportDetails!.PayPalTransactionResponse = transactionResponse;
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Failed to get balance data from {transactionURL}");
-                    }
-                }
+                        // Send GET request
+                        var response = await client.GetAsync(transactionURL);
+
+                        if (response.IsSuccessStatusCode && response.Content != null)
+                        {
+                            try
+                            {
+                                // Convert to objects through Json Deserialization
+                                if (balanceDateType == BalanceDateType.Start)
+                                {
+                                    _payPalReportDetails!.PayPalStartBalanceResponse = await JsonSerializer.DeserializeAsync<BalanceResponse>(response.Content.ReadAsStream());
+                                }
+                                else if (balanceDateType == BalanceDateType.End)
+                                {
+                                    _payPalReportDetails!.PayPalEndBalanceResponse = await JsonSerializer.DeserializeAsync<BalanceResponse>(response.Content.ReadAsStream());
+                                }
+                                else
+                                {
+                                    throw new ArgumentException($"Illegal argument: {balanceDateType}");
+                                }
+                                break;
+                            }
+                            catch (Exception ex) when (ex is ArgumentNullException
+                                                    || ex is InvalidOperationException
+                                                    || ex is HttpRequestException
+                                                    || ex is TaskCanceledException
+                                                    || ex is EncoderFallbackException)
+                            {
+                                UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                                Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                                Debug.WriteLine(ex);
+                            }
+                            catch (Exception ex) when (ex is UriFormatException
+                                                    || ex is JsonException
+                                                    || ex is NotSupportedException)
+                            {
+                                UpdateStatusText($"{StandardMessages.POSSIBLE_PAYPAL_API_CHANGE}");
+                                Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                                Debug.WriteLine(ex);
+                            }
+                        }
+                        else
+                        {
+                            UpdateStatusText($"RequestToken Bad Response: {response.StatusCode}");
+                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode}");
+                        }
+                    }   // end for
+                }   // end using
             }
-        }
+        }   // end RequestTransactionInfo
 
         private async Task RequestToken()
         {
@@ -179,7 +221,6 @@ namespace PayPalReports.Services
                 string token_uri = _apiData[URL] + PAYPAL_OAUTH_TOKEN_ENDPOINT;
 
                 // Multi-attempt request loop
-                bool successfulRequest = false;
                 for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
                 {
                     // Send POST request 
@@ -191,7 +232,7 @@ namespace PayPalReports.Services
                         {
                             // Stream the responseMessage through Json Deserializer, converting to usable object
                             _tokenData = await JsonSerializer.DeserializeAsync<PayPalTokenResponse>(response.Content.ReadAsStream());
-                            successfulRequest = true;
+                            break;
                         }
                         catch (Exception ex) when (ex is ArgumentNullException
                                                 || ex is InvalidOperationException
@@ -212,9 +253,10 @@ namespace PayPalReports.Services
                             Debug.WriteLine(ex);
                         }
                     }
-                    if (successfulRequest)
+                    else
                     {
-                        break;
+                        UpdateStatusText($"RequestToken Bad Response: {response.StatusCode}");
+                        Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode}");
                     }
                 }   // end for
             }   // end using
@@ -238,23 +280,48 @@ namespace PayPalReports.Services
                     // Construct URL
                     string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
 
-                    // Send GET request
-                    var response = await client.GetAsync(transactionURL);
-
-                    // Convert to objects through Json Deserialization
-                    var transactionResponse = await JsonSerializer.DeserializeAsync<PayPalTransactionResponse>(response.Content.ReadAsStream());
-
-                    if (transactionResponse != null)
+                    // Multi-attempt request loop
+                    for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
                     {
-                        this._payPalReportDetails!.PayPalTransactionResponse = transactionResponse;
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"Failed to get transaction data from {transactionURL}");
-                    }
-                }
+                        // Send GET request
+                        var response = await client.GetAsync(transactionURL);
+
+                        if (response.IsSuccessStatusCode && response.Content != null)
+                        {
+                            try
+                            {
+                                // Convert to objects through Json Deserialization
+                                _payPalReportDetails!.PayPalTransactionResponse = await JsonSerializer.DeserializeAsync<TransactionResponse>(response.Content.ReadAsStream());
+                                break;
+                            }
+                            catch (Exception ex) when (ex is ArgumentNullException
+                                                    || ex is InvalidOperationException
+                                                    || ex is HttpRequestException
+                                                    || ex is TaskCanceledException
+                                                    || ex is EncoderFallbackException)
+                            {
+                                UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                                Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                                Debug.WriteLine(ex);
+                            }
+                            catch (Exception ex) when (ex is UriFormatException
+                                                    || ex is JsonException
+                                                    || ex is NotSupportedException)
+                            {
+                                UpdateStatusText($"{StandardMessages.POSSIBLE_PAYPAL_API_CHANGE}");
+                                Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                                Debug.WriteLine(ex);
+                            }
+                        }
+                        else
+                        {
+                            UpdateStatusText($"RequestToken Bad Response: {response.StatusCode}");
+                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode}");
+                        }
+                    }   // end for
+                }   // end using
             }
-        }
+        }   // end RequestTransactionInfo
 
         /**
          * Method for messaging the user through the UI
