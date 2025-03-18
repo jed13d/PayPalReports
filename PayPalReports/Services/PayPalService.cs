@@ -51,6 +51,13 @@ namespace PayPalReports.Services
             LoadApiInfo();
         }
 
+        private void DebugOutputTokenData()
+        {
+            Console.WriteLine($"Scope: {_tokenData?.scope}");
+            Console.WriteLine($"Token Type: {_tokenData?.token_type}");
+            Console.WriteLine($"Token: {_tokenData?.access_token}");
+        }
+
         /// <summary>
         /// Calls the various PayPal API endpoints and loads the PayPalReportDetails argument with the returned data.
         /// </summary>
@@ -60,19 +67,26 @@ namespace PayPalReports.Services
         {
             bool success = false;
 
+            Debug.WriteLine($"TryGetPayPalData, starting null checks.");
             // Basic null check
             if (payPalReportDetails != null && !string.IsNullOrEmpty(payPalReportDetails.StartDate) && !string.IsNullOrEmpty(payPalReportDetails.EndDate))
             {
+                Debug.WriteLine($"TryGetPayPalData, assigning local variables.");
                 _payPalReportDetails = payPalReportDetails;
-                RequestReportData();
+
+                Debug.WriteLine($"TryGetPayPalData, calling aync task.");
+
+                Task.Run(RequestReportData).Wait();
+
+                Debug.WriteLine($"TryGetPayPalData, reassigning reference variable data.");
                 payPalReportDetails = _payPalReportDetails;
                 success = true;
             }
             else
             {
                 UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                Debug.WriteLine($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
             }
-
             return success;
         }
 
@@ -80,33 +94,43 @@ namespace PayPalReports.Services
          * Outer-most private method for the various API calls to PayPal, gathering the various data required.
          * Delays are sprinkled in to throttle the API calls
          * */
-        private async void RequestReportData()
+        private async Task RequestReportData()
         {
             // if the token is cached, no reason to get a new one
             if (_tokenData == null)
             {
                 UpdateStatusText($"{StandardMessages.PAYPAL_GETTING_TOKEN}");
+                Debug.WriteLine($"{StandardMessages.PAYPAL_GETTING_TOKEN}");
 
                 await RequestToken();
-                Task.Delay(100).Wait();
+                Task.Delay(1000).Wait();
             }
 
 
             if (_tokenData != null)
             {
+                //DebugOutputTokenData();
+
+                Debug.WriteLine($"Sending transaction info request");
                 Task transactionRequest = RequestTransactionInfo();
                 Task.Delay(10).Wait();
+
+                Debug.WriteLine($"Sending start balance request");
                 Task sBalanceRequest = RequestBalance(_payPalReportDetails!.StartDate, BalanceDateType.Start);
                 Task.Delay(10).Wait();
+
+                Debug.WriteLine($"Sending end balance request");
                 Task eBalanceRequest = RequestBalance(_payPalReportDetails!.EndDate, BalanceDateType.End);
 
                 await sBalanceRequest;
                 await eBalanceRequest;
                 await transactionRequest;
+
             }
             else
             {
                 UpdateStatusText($"{StandardMessages.PAYPAL_FAILED_GETTING_TOKEN}");
+                Debug.WriteLine($"{StandardMessages.PAYPAL_FAILED_GETTING_TOKEN}");
             }
         }
 
@@ -280,6 +304,8 @@ namespace PayPalReports.Services
                     // Construct URL
                     string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
 
+                    Debug.WriteLine($"{transactionURL}");
+
                     // Multi-attempt request loop
                     for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
                     {
@@ -315,8 +341,9 @@ namespace PayPalReports.Services
                         }
                         else
                         {
-                            UpdateStatusText($"RequestToken Bad Response: {response.StatusCode}");
-                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode}");
+                            UpdateStatusText($"RequestToken Bad Response: {response.StatusCode} : {response.Content}");
+                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode} : {response.Content}");
+                            return;
                         }
                     }   // end for
                 }   // end using
