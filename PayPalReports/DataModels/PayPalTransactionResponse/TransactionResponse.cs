@@ -3,8 +3,7 @@
 namespace PayPalReports.DataModels.PayPalTransactionResponse
 {
     record class TransactionResponse(
-        [property: JsonPropertyName("transaction_info")] TransactionInfo transaction_info,
-        [property: JsonPropertyName("payer_info")] PayerInfo payer_info,
+        [property: JsonPropertyName("transaction_details")] TransactionDetails[] transaction_details,
         [property: JsonPropertyName("account_number")] string account_number,
         [property: JsonPropertyName("last_refreshed_datetime")] string last_refreshed_datetime,
         [property: JsonPropertyName("end_date")] string end_date,
