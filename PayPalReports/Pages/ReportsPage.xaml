@@ -53,7 +53,7 @@
         <TextBox Name="ClientKey" Text="some key" Grid.Column="1" Grid.Row="5" Style="{StaticResource TextBoxInputStyle}" />
 
 
-        <Button Content="Test" Click="TestData_Click" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="6" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Button x:Name="Submit_Button" Content="Test" Click="TestData_Click" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="6" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
     </Grid>
 </Page>

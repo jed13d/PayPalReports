@@ -1,4 +1,6 @@
-﻿using PayPalReports.Services;
+﻿using PayPalReports.CustomEvents;
+using PayPalReports.DataModels;
+using PayPalReports.Services;
 using System.Diagnostics;
 using System.Windows.Controls;
 
@@ -11,49 +13,73 @@ namespace PayPalReports.Pages
     {
         private PayPalService _payPalService = new();
 
+        private readonly string END_OF_DAY_TIME = "23:59:59";
+        private readonly string ISO_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:sszzz";
+
         public DateTime EndDate { get; set; }
         public DateTime StartDate { get; set; }
 
         public ReportSetupPage()
         {
             InitializeComponent();
+            ClearStatusText();
         }
 
         private void TestData_Click(object sender, EventArgs e)
         {
-            Debug.WriteLine($"Start: {dpStartDate.Text}");
+            // Disable button to prevent multiple submissions
+            Submit_Button.IsEnabled = false;
 
+            // Utilize DateTime object to convert UI form submission to ISO8601 Internet Date/Time Format
             StartDate = DateTime.Parse(dpStartDate.Text);
 
-            Debug.WriteLine($"Start: {StartDate:O}");
-
-            Debug.WriteLine($"End: {dpEndDate.Text}");
-
-            string endDate = $"{dpEndDate.Text} 23:59:59";
-            //string endDate = $"{dpEndDate.Text}T23:59:59.0000000Z";
-
+            string endDate = $"{dpEndDate.Text} {END_OF_DAY_TIME}";
             EndDate = DateTime.Parse(endDate);
 
-            //EndDate = DateTime.Parse(dpEndDate.Text);
+            // Create context object for storing and passing data
+            PayPalReportDetails payPalReportDetails = new PayPalReportDetails();
+            payPalReportDetails.StartDate = $"{StartDate.ToString(ISO_DATE_TIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)}";
+            payPalReportDetails.EndDate = $"{EndDate.ToString(ISO_DATE_TIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)}";
 
-            Debug.WriteLine($"End: {EndDate:O}");
+            // Begin PayPalService series of requests for data pull
+            if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
+            {
+                UpdateStatusText($"PayPalService reported success!");
+                DebugOutput(payPalReportDetails);
+            }
+
+            // reenable button once complete
+            Submit_Button.IsEnabled = true;
         }
 
-        private async void Test(object sender, System.Windows.RoutedEventArgs e)
+        private void DebugOutput(PayPalReportDetails payPalReportDetails)
         {
-            Debug.WriteLine($"Initializing PayPal Token Request test.");
-            try
-            {
-                bool testPassed = await _payPalService.TestTokenRequest();
-                if (testPassed)
-                {
-                    Debug.WriteLine($"Successfully received token with PayPal.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"An exception occured while running token test. {ex}");
-            }
+            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
+
+            Debug.WriteLine($"Start Date: {payPalReportDetails?.StartDate}");
+            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalStartBalanceResponse?.balances[0].total_balance.value}\n");
+
+            Debug.WriteLine($"End Date: {payPalReportDetails?.EndDate}");
+            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalEndBalanceResponse?.balances[0].total_balance.value}\n");
+
+            Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.account_number}");
+            Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0].transaction_info.transaction_id}");
+
+            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
+        }
+
+        private void ClearStatusText()
+        {
+            UpdateStatusText($"");
+        }
+
+        /**
+         * Method for messaging the user through the UI
+         * (maybe pull this out and make event driven at bottom of window)
+         * */
+        private void UpdateStatusText(string message)
+        {
+            StatusEvent.Raise(message);
         }
     }
 }
