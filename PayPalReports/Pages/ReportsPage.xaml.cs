@@ -1,7 +1,6 @@
 ﻿using PayPalReports.CustomEvents;
 using PayPalReports.DataModels;
 using PayPalReports.Services;
-using System.Diagnostics;
 using System.Windows.Controls;
 
 namespace PayPalReports.Pages
@@ -45,27 +44,10 @@ namespace PayPalReports.Pages
             if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
             {
                 UpdateStatusText($"PayPalService reported success!");
-                DebugOutput(payPalReportDetails);
             }
 
             // reenable button once complete
             Submit_Button.IsEnabled = true;
-        }
-
-        private void DebugOutput(PayPalReportDetails payPalReportDetails)
-        {
-            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
-
-            Debug.WriteLine($"Start Date: {payPalReportDetails?.StartDate}");
-            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalStartBalanceResponse?.balances[0].total_balance.value}\n");
-
-            Debug.WriteLine($"End Date: {payPalReportDetails?.EndDate}");
-            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalEndBalanceResponse?.balances[0].total_balance.value}\n");
-
-            Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.account_number}");
-            Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0].transaction_info.transaction_id}");
-
-            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
         }
 
         private void ClearStatusText()
