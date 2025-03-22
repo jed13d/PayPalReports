@@ -92,17 +92,14 @@ namespace PayPalReports
          * */
         public void UpdateStatusEvent(string message)
         {
-            StatusTextBlock.Dispatcher.InvokeAsync(() =>
+            if (string.IsNullOrEmpty(message))
             {
-                if (string.IsNullOrEmpty(message))
-                {
-                    StatusTextBlock.Text = "";
-                }
-                else
-                {
-                    StatusTextBlock.Text = message;
-                }
-            });
+                StatusTextBlock.Text = "";
+            }
+            else
+            {
+                StatusTextBlock.Text = message;
+            }
         }
 
         // The following is only for proper maximizing of the window (may remove resizing)
