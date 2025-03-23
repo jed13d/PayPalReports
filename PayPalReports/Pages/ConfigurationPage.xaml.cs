@@ -6,13 +6,13 @@ using System.Windows.Controls;
 
 namespace PayPalReports.Pages
 {
-    public partial class PayPalConfigurationPage : Page
+    public partial class ConfigurationPage : Page
     {
         private readonly string DATA_EXISTS_MESSAGE = "PayPal API configuration data exists. It's unknown whether the data is valid. For security reasons, the data will not be displayed.";
         private readonly string DATA_SAVED = "Configuration data saved. For security reasons, the form has been cleared and the data stored will not be shown.";
         private readonly string PAYPAL_DATA_FILE = "pdata.dat";
 
-        public PayPalConfigurationPage()
+        public ConfigurationPage()
         {
             InitializeComponent();
 
