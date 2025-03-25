@@ -6,6 +6,8 @@
 
         public static readonly string UNLIKELY_INTERNAL_ERROR = "An internal error, which shouldn't have happened, occurred.";
 
+        public static readonly string PAYPAL_GETTING_DATA = "Requesting data from PayPal.";
+
         public static readonly string PAYPAL_GETTING_TOKEN = "Establishing secure connection with PayPal.";
 
         public static readonly string PAYPAL_FAILED_GETTING_TOKEN = "Failed to establish secure connection with PayPal API. Check you're able to connect with PayPal and try again.";
