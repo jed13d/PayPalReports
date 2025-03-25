@@ -1,4 +1,6 @@
-﻿namespace PayPalReports.CustomEvents
+﻿using System.Diagnostics;
+
+namespace PayPalReports.CustomEvents
 {
     class StatusEvent
     {
@@ -8,6 +10,7 @@
 
         public static void Raise(string message)
         {
+            Debug.WriteLine($"Status Update: {message}");
             foreach (IStatusEventListener listener in _eventListeners)
             {
                 listener.UpdateStatusEvent(message);
