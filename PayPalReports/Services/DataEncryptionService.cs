@@ -5,7 +5,7 @@ using System.Text;
 
 namespace PayPalReports.Services
 {
-    class DataEncryptionService
+    internal class DataEncryptionService
     {
         private byte[] _entropy;
         private int _bytesWritten;

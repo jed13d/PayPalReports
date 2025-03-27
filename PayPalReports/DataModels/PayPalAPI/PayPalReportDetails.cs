@@ -1,7 +1,7 @@
-﻿using PayPalReports.DataModels.PayPalBalanceResponse;
-using PayPalReports.DataModels.PayPalTransactionResponse;
+﻿using PayPalReports.DataModels.PayPalAPI.PayPalBalanceResponse;
+using PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse;
 
-namespace PayPalReports.DataModels
+namespace PayPalReports.DataModels.PayPalAPI
 {
     class PayPalReportDetails
     {

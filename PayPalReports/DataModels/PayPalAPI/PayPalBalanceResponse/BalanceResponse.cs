@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PayPalReports.DataModels.PayPalBalanceResponse
+namespace PayPalReports.DataModels.PayPalAPI.PayPalBalanceResponse
 {
     record class BalanceResponse(
         [property: JsonPropertyName("balances")] Balances[] balances,

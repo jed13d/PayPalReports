@@ -1,5 +1,5 @@
 ﻿using PayPalReports.CustomEvents;
-using PayPalReports.DataModels;
+using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
 using System.Windows.Controls;
 

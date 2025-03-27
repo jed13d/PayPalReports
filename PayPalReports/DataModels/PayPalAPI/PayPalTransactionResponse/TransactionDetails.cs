@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PayPalReports.DataModels.PayPalTransactionResponse
+namespace PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse
 {
     record class TransactionDetails(
         [property: JsonPropertyName("transaction_info")] TransactionInfo transaction_info,

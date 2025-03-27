@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PayPalReports.DataModels
+namespace PayPalReports.DataModels.PayPalAPI
 {
     record class PayPalTokenResponse(
         [property: JsonPropertyName("scope")] string scope,

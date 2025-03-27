@@ -1,7 +1,7 @@
 ﻿using PayPalReports.CustomEvents;
-using PayPalReports.DataModels;
-using PayPalReports.DataModels.PayPalBalanceResponse;
-using PayPalReports.DataModels.PayPalTransactionResponse;
+using PayPalReports.DataModels.PayPalAPI;
+using PayPalReports.DataModels.PayPalAPI.PayPalBalanceResponse;
+using PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse;
 using PayPalReports.Globals;
 using System.Diagnostics;
 using System.Net.Http;
@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace PayPalReports.Services
 {
-    class PayPalService
+    internal class PayPalService
     {
         private string[] _apiData = new string[6];
         private PayPalTokenResponse? _tokenData;
