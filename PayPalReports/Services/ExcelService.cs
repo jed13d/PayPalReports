@@ -1,6 +1,7 @@
 ﻿using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using PayPalReports.DataModels.PayPalAPI;
+using PayPalReports.DataModels;
+using PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse;
 using System.Drawing;
 using System.IO;
 
@@ -8,8 +9,6 @@ namespace PayPalReports.Services
 {
     internal class ExcelService
     {
-        private readonly string PATH_TO_OUTPUT = "reportSample.xlsx";
-
         private readonly string TEMPLATE = "Template";
 
         private readonly string TITLE = "MASTER LEDGER";
@@ -20,53 +19,130 @@ namespace PayPalReports.Services
         private readonly string OPENING_BALANCE_HEADER_CELL = "A4";
         private readonly string OPENING_BALANCE_CELL = "B4";
 
-        private readonly string[] HEADER_STRINGS = new string[] { "Date", "Reference", "Account", "Explanation", "Credit (-)", "Debit (+)", "Balance" };
+        private readonly string[] HEADER_STRINGS = new string[] { "Date", "Reference", "Account", "Explanation", "Debit (+)", "Credit (-)", "Balance" };
         private readonly string[] DROPDOWN_TABLE_VALUES_C1 = new string[] { "Types of Accounts", "Petty Cash-Revenue", "Checking", "PayPal-Expenses", "PayPal-Revenue", "Petty Cash-Expenses" };
         private readonly string[] DROPDOWN_TABLE_VALUES_C2 = new string[] { "DR/CR", "CR", "DR", "DR", "CR", "DR" };
 
-        private readonly string CREDIT_TOTAL_CELL = "E7";
-        private readonly string CREDIT_TOTAL_FORMULA = "=SUM(E8:E)";
-        private readonly string DEBIT_TOTAL_CELL = "F7";
-        private readonly string DEBIT_TOTAL_FORMULA = "=SUM(F8:F)";
+        private readonly string DEBIT_TOTAL_CELL = "E7";
+        private readonly string CREDIT_TOTAL_CELL = "F7";
         private readonly string BALANCE_TOTAL_CELL = "G7";
         private readonly string BALANCE_TOTAL_FORMULA = "=B4+E7-F7";
 
         private readonly string CURRENCY_FORMAT = "_($* #,##0.00_);_($* (#,##0.00);_($* \"-\"??_);_(@_)";
-        private readonly string ACCOUNT_TYPES_ADDRESS_NAME = "AccountTypeValues";
         private readonly string[] ALPHA = new string[] { "A", "B", "C", "D", "E", "F", "G", "H", "I" };
+        private readonly string[] MONTH_STRING = new string[] { "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+        private readonly string ACCOUNT_DROPDOWN_VALUES_CELLS_FORMULA = "$I$10:%I%14";
+        private readonly int DATA_START_ROW = 8;
+        private readonly string COL_DATE = "A";
+        private readonly string COL_REFERENCE = "B";
+        private readonly string COL_ACCOUNT = "C";
+        private readonly string COL_NOTES = "D";
+        private readonly string COL_CREDIT = "E";
+        private readonly string COL_DEBIT = "F";
+        private readonly string COL_BALANCE = "G";
 
         public ExcelService()
         {
             ExcelPackage.License.SetNonCommercialOrganization("Non-commercial Organization");
-            //GenerateTemplate();
-            GenReportTest();
         }
 
-        private void GenerateReport(PayPalReportDetails reportData)
+        public bool GenerateReport(ExcelReportContext reportContext)
         {
-            //xlsWorksheet.Cells[CREDIT_TOTAL_CELL].Formula = CREDIT_TOTAL_FORMULA;
-            //xlsWorksheet.Cells[DEBIT_TOTAL_CELL].Formula = DEBIT_TOTAL_FORMULA;
-            //xlsWorksheet.Cells[BALANCE_TOTAL_CELL].Formula = BALANCE_TOTAL_FORMULA;
-        }
+            bool success = true;
 
-        private void GenReportTest()
-        {
             // Create a excel package
-            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(PATH_TO_OUTPUT)))
+            using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(reportContext.OutputPath)))
             {
                 // Get the workbook
                 ExcelWorkbook xlsWorkbook = excelPackage.Workbook;
 
-                if (xlsWorkbook.Worksheets.Count == 0)
+                // create the template if it doesn't already exist
+                if (xlsWorkbook.Worksheets[TEMPLATE] == null)
                 {
                     GenerateTemplate(xlsWorkbook);
                 }
 
-                xlsWorkbook.Worksheets[TEMPLATE].Name = "Jan 2025";
-                xlsWorkbook.Worksheets.Copy("Jan 2025", TEMPLATE);
+                // some variable definitions for the data assignment loop
+                int curMonth = -1;
+                int curYear = -1;
+                int curRow = -1;
+                string titleString = "";
+                ExcelWorksheet xlsWorksheet = xlsWorkbook.Worksheets[TEMPLATE];
+                foreach (TransactionDetails transactionDetails in reportContext!.PayPalReportDetails!.PayPalTransactionResponse!.transaction_details)
+                {
+                    // check date is still within the current month, or move to a new sheet
+                    DateTime updateDate = DateTime.Parse(transactionDetails.transaction_info.transaction_updated_date);
+                    if (updateDate.Month != curMonth)
+                    {
+                        // if curMonth > 0, then input balance totals, closing out the sheet before creating a new one
+                        if (curMonth > 0)
+                        {
+                            xlsWorksheet.Cells[DEBIT_TOTAL_CELL].Formula = $"=SUM(E8:E{curRow - 1};{CURRENCY_FORMAT})";
+                            xlsWorksheet.Cells[CREDIT_TOTAL_CELL].Formula = $"=SUM(F8:F{curRow - 1};{CURRENCY_FORMAT})";
+                        }
+
+                        // new sheet is required
+
+                        // update sheet variables
+                        curMonth = updateDate.Month;
+                        curYear = updateDate.Year;
+                        curRow = DATA_START_ROW;
+                        titleString = $"{MONTH_STRING[curMonth]} {curYear}";
+
+                        // create a new sheet
+                        CopyTemplate(xlsWorkbook, titleString);
+                        xlsWorksheet = xlsWorkbook.Worksheets[titleString];
+
+                        // Update Title "Date"
+                        xlsWorksheet.Cells[TITLE_DATE_CELL].Value = titleString;
+                    }
+
+                    // assign data to various fields
+
+                    // date
+                    xlsWorksheet.Cells[$"{curRow}{COL_DATE}"].Value = updateDate.Date.ToString();
+
+                    // reference 
+                    xlsWorksheet.Cells[$"{curRow}{COL_REFERENCE}"].Value = transactionDetails.transaction_info.transaction_id;
+
+                    // account dropdown
+                    ExcelRange accountTypeCell = xlsWorksheet.Cells[$"{curRow}{COL_ACCOUNT}"];
+                    var dropdown = xlsWorksheet.DataValidations.AddListValidation(accountTypeCell.Address);
+                    dropdown.Formula.ExcelFormula = ACCOUNT_DROPDOWN_VALUES_CELLS_FORMULA;
+
+                    // explanation 
+                    xlsWorksheet.Cells[$"{curRow}{COL_NOTES}"].Value = transactionDetails.transaction_info.transaction_note;
+
+                    double transactionAmount = double.Parse(transactionDetails.transaction_info.transaction_amount.value);
+
+                    // debit        // FORMAT FOR ACCOUNTING
+                    xlsWorksheet.Cells[$"{curRow}{COL_DEBIT}"].Value = transactionAmount >= 0 ? transactionAmount : 0;
+                    xlsWorksheet.Cells[$"{curRow}{COL_DEBIT}"].Formula = CURRENCY_FORMAT;
+
+                    // credit 
+                    xlsWorksheet.Cells[$"{curRow}{COL_CREDIT}"].Value = transactionAmount <= 0 ? Math.Abs(transactionAmount) : 0;
+                    xlsWorksheet.Cells[$"{curRow}{COL_CREDIT}"].Formula = CURRENCY_FORMAT;
+
+                    // balance 
+                    xlsWorksheet.Cells[$"{curRow}{COL_BALANCE}"].Value = transactionDetails.transaction_info.transaction_note;
+                    xlsWorksheet.Cells[$"{curRow}{COL_BALANCE}"].Formula = CURRENCY_FORMAT;
+
+                    // increment the current row
+                    curRow++;
+
+                }   // data assignment loop
 
                 excelPackage.Save();
             }
+
+            return success;
+        }
+
+        private void CopyTemplate(ExcelWorkbook xlsWorkbook, string destinationWorksheetName)
+        {
+            xlsWorkbook.Worksheets[TEMPLATE].Name = destinationWorksheetName;
+            xlsWorkbook.Worksheets.Copy(destinationWorksheetName, TEMPLATE);
         }
 
         private void GenerateTemplate(ExcelWorkbook xlsWorkbook)
@@ -80,7 +156,11 @@ namespace PayPalReports.Services
                 titleCell.Value = TITLE;
                 ApplyStyleTitle(titleCell);
             }
-            ApplyStyleTitle(xlsWorksheet.Cells[TITLE_DATE_CELL]);
+            using (ExcelRange titleDateCell = xlsWorksheet.Cells[TITLE_DATE_CELL])
+            {
+                titleDateCell.Value = TEMPLATE;
+                ApplyStyleTitle(titleDateCell);
+            }
 
             // Setup Opening Balance
             using (ExcelRange openBalHeaderCell = xlsWorksheet.Cells[OPENING_BALANCE_HEADER_CELL])
@@ -96,6 +176,7 @@ namespace PayPalReports.Services
             {
                 xlsWorksheet.Cells[$"{ALPHA[column]}6"].Value = HEADER_STRINGS[column];
             }
+            xlsWorksheet.Cells[BALANCE_TOTAL_CELL].Formula = $"{BALANCE_TOTAL_FORMULA};{CURRENCY_FORMAT}";
 
             // Freeze header rows
             xlsWorksheet.View.FreezePanes(8, 1);
@@ -111,7 +192,6 @@ namespace PayPalReports.Services
                 xlsWorksheet.Cells[row, 9].Value = DROPDOWN_TABLE_VALUES_C1[i];
                 xlsWorksheet.Cells[row, 10].Value = DROPDOWN_TABLE_VALUES_C2[i];
             }
-            xlsWorkbook.Names.Add(ACCOUNT_TYPES_ADDRESS_NAME, xlsWorksheet.Cells["I10:I14"]);
 
 
             // Set column widths
