@@ -7,7 +7,7 @@
         xmlns:svg="http://sharpvectors.codeplex.com/runtime/"
         xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         mc:Ignorable="d"
-        Title="PayPal Reports" Height="410" Width="600"
+        Title="PayPal Reports" Height="300" Width="600"
         WindowStyle="None">
     <WindowChrome.WindowChrome>
         <WindowChrome GlassFrameThickness="0" CornerRadius="0" CaptionHeight="0" />
@@ -149,16 +149,16 @@
             
             <!-- Tabs -->
             <ListBox x:Name="TabRow" DockPanel.Dock="Top" SelectionMode="Single" HorizontalAlignment="Left" Height="32" Style="{StaticResource ListBoxTabRowStyle}" SelectionChanged="ListBoxTabs_SelectionChanged">
-                <local:NavTab Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ReportsPage.xaml">
+                <local:NavTab x:Name="DefaultTab" Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ReportsPage.xaml">
                     Reports
                 </local:NavTab>
-                <local:NavTab Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/PayPalConfigurationPage.xaml">
+                <local:NavTab Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ConfigurationPage.xaml">
                     Configuration
                 </local:NavTab>
             </ListBox>
 
             <!-- Bottom Status Bar-->
-            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="Sample&#x0a;text&#x0a;text" />
+            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="Status text" />
 
             <!-- Content -->
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="Fuchsia" />

@@ -18,8 +18,9 @@ namespace PayPalReports
 
             StatusEvent.RegisterListener(this);
 
-            // some other initialization
             restoreButton.Visibility = Visibility.Collapsed;
+
+            DefaultTab.IsSelected = true;
         }
 
         private void ListBoxTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
