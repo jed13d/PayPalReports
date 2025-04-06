@@ -35,8 +35,6 @@ namespace PayPalReports.Pages
         {
             PayPalURL.Text = "";
             Region.Text = "";
-            Email.Text = "";
-            Password.Text = "";
             ClientID.Text = "";
             ClientKey.Text = "";
         }
@@ -50,8 +48,6 @@ namespace PayPalReports.Pages
 
             sb.AppendFormat("{0}\n", PayPalURL.Text);
             sb.AppendFormat("{0}\n", Region.Text);
-            sb.AppendFormat("{0}\n", Email.Text);
-            sb.AppendFormat("{0}\n", Password.Text);
             sb.AppendFormat("{0}\n", ClientID.Text);
             sb.AppendFormat("{0}", ClientKey.Text);
 
