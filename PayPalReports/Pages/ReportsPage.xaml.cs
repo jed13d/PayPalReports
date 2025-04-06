@@ -1,4 +1,6 @@
-﻿using PayPalReports.CustomEvents;
+﻿using Microsoft.Win32;
+using PayPalReports.CustomEvents;
+using PayPalReports.DataModels;
 using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
 using System.Windows.Controls;
@@ -11,9 +13,13 @@ namespace PayPalReports.Pages
     public partial class ReportSetupPage : Page
     {
         private PayPalService _payPalService = new();
+        private ExcelService _excelService = new();
 
         private readonly string END_OF_DAY_TIME = "23:59:59";
-        private readonly string ISO_DATE_TIME_FORMAT = "yyyy-MM-ddTHH:mm:sszzz";
+
+        private readonly string DIALOG_FILENAME = "Master-Ledger";
+        private readonly string DIALOG_FILE_EXTENSION = ".xlsx";
+        private readonly string FILTER = "Excel Book (.xlsx)|*.xlsx";
 
         public DateTime EndDate { get; set; }
         public DateTime StartDate { get; set; }
@@ -24,30 +30,60 @@ namespace PayPalReports.Pages
             ClearStatusText();
         }
 
+        private void Destination_Search_Click(object sender, EventArgs e)
+        {
+            var dialog = new SaveFileDialog();
+            dialog.FileName = DIALOG_FILENAME;
+            dialog.DefaultExt = DIALOG_FILE_EXTENSION;
+            dialog.Filter = FILTER;
+
+            bool? result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                DestinationPath.Text = dialog.FileName;
+            }
+        }
+
         private void TestData_Click(object sender, EventArgs e)
         {
             // Disable button to prevent multiple submissions
             Submit_Button.IsEnabled = false;
 
             // Utilize DateTime object to convert UI form submission to ISO8601 Internet Date/Time Format
-            StartDate = DateTime.Parse(dpStartDate.Text);
-
             string endDate = $"{dpEndDate.Text} {END_OF_DAY_TIME}";
-            EndDate = DateTime.Parse(endDate);
 
             // Create context object for storing and passing data
             PayPalReportDetails payPalReportDetails = new PayPalReportDetails();
-            payPalReportDetails.StartDate = $"{StartDate.ToString(ISO_DATE_TIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)}";
-            payPalReportDetails.EndDate = $"{EndDate.ToString(ISO_DATE_TIME_FORMAT, System.Globalization.CultureInfo.InvariantCulture)}";
+            payPalReportDetails.StartDate = DateTime.Parse(dpStartDate.Text);
+            payPalReportDetails.EndDate = DateTime.Parse(endDate);
 
             // Begin PayPalService series of requests for data pull
             if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
             {
-                UpdateStatusText($"PayPalService reported success!");
+                if (GenerateReport(payPalReportDetails))
+                {
+                    UpdateStatusText($"Report generation is complete.");
+                }
+                else
+                {
+                    UpdateStatusText($"There has been an error generating your report.");
+                }
+            }
+            else
+            {
+                UpdateStatusText($"There has been an error getting the data from PayPal.");
             }
 
             // reenable button once complete
             Submit_Button.IsEnabled = true;
+        }
+
+        private bool GenerateReport(PayPalReportDetails payPalReportDetails)
+        {
+            UpdateStatusText($"Generating report.");
+            ExcelReportContext excelReportContext = new(payPalReportDetails, DestinationPath.Text);
+            return _excelService.GenerateReport(excelReportContext);
         }
 
         private void ClearStatusText()

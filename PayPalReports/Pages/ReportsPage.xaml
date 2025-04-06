@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PayPalReports.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="255" d:DesignWidth="590"
+      d:DesignHeight="180" d:DesignWidth="590"
       Title="ReportSetupPage">
 
     <Grid Background="{StaticResource Standard.Static.Background}" MinHeight="225" >
@@ -39,21 +39,47 @@
         </Grid>
         
         <!-- Labels -->
-        <TextBox Text="Region:" Grid.Column="0" Grid.Row="1" Style="{StaticResource TextBoxLabelStyle}" />
+        <TextBox Text="Destination:" Grid.Column="0" Grid.Row="1" Style="{StaticResource TextBoxLabelStyle}" />
+        <!--
         <TextBox Text="Email:" Grid.Column="0" Grid.Row="2" Style="{StaticResource TextBoxLabelStyle}" />
         <TextBox Text="Password:" Grid.Column="0" Grid.Row="3" Style="{StaticResource TextBoxLabelStyle}" />
         <TextBox Text="Client ID:" Grid.Column="0" Grid.Row="4" Style="{StaticResource TextBoxLabelStyle}" />
-        <TextBox Text="Client Key:" Grid.Column="0" Grid.Row="5" Style="{StaticResource TextBoxLabelStyle}" />
+        <TextBox Text="Client Key:" Grid.Column="0" Grid.Row="5" Style="{StaticResource TextBoxLabelStyle}" /> -->
 
         <!-- Forms -->
-        <TextBox Name="Region" Text="us" Grid.Column="1" Grid.Row="1" Style="{StaticResource TextBoxInputStyle}" />
+        <!-- Destination Input Row -->
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition MinWidth="45" Width="45" />
+            </Grid.ColumnDefinitions>
+            <TextBox Name="DestinationPath" Text="" Style="{StaticResource TextBoxInputStyle}" />
+            <Button x:Name="Folder_Button" Click="Destination_Search_Click" Grid.Column="2" Height="25" Width="40" >
+                <Image Height="20" Width="20" Margin="5,0,5,0">
+                    <Image.Source>
+                        <DrawingImage>
+                            <DrawingImage.Drawing>
+                                <DrawingGroup ClipGeometry="M0,0 V24 H24 V0 H0 Z">
+                                    <GeometryDrawing Geometry="F1 M24,24z M0,0z M3,8.2C3,7.07989 3,6.51984 3.21799,6.09202 3.40973,5.71569 3.71569,5.40973 4.09202,5.21799 4.51984,5 5.0799,5 6.2,5L9.67452,5C10.1637,5 10.4083,5 10.6385,5.05526 10.8425,5.10425 11.0376,5.18506 11.2166,5.29472 11.4184,5.4184 11.5914,5.59135 11.9373,5.93726L12.0627,6.06274C12.4086,6.40865 12.5816,6.5816 12.7834,6.70528 12.9624,6.81494 13.1575,6.89575 13.3615,6.94474 13.5917,7 13.8363,7 14.3255,7L17.8,7C18.9201,7 19.4802,7 19.908,7.21799 20.2843,7.40973 20.5903,7.71569 20.782,8.09202 21,8.51984 21,9.0799 21,10.2L21,15.8C21,16.9201 21,17.4802 20.782,17.908 20.5903,18.2843 20.2843,18.5903 19.908,18.782 19.4802,19 18.9201,19 17.8,19L6.2,19C5.07989,19 4.51984,19 4.09202,18.782 3.71569,18.5903 3.40973,18.2843 3.21799,17.908 3,17.4802 3,16.9201 3,15.8L3,8.2z">
+                                        <GeometryDrawing.Pen>
+                                            <Pen  Brush="{StaticResource Button.Static.Foreground}" Thickness="2" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" MiterLimit="1" />
+                                        </GeometryDrawing.Pen>
+                                    </GeometryDrawing>
+                                </DrawingGroup>
+                            </DrawingImage.Drawing>
+                        </DrawingImage>
+                    </Image.Source>
+                </Image>
+            </Button>
+        </Grid>
+        <!--
         <TextBox Name="Email" Text="some email" Grid.Column="1" Grid.Row="2" Style="{StaticResource TextBoxInputStyle}" />
         <TextBox Name="Password" Text="some password" Grid.Column="1" Grid.Row="3" Style="{StaticResource TextBoxInputStyle}" />
         <TextBox Name="ClientID" Text="some ID" Grid.Column="1" Grid.Row="4" Style="{StaticResource TextBoxInputStyle}" />
-        <TextBox Name="ClientKey" Text="some key" Grid.Column="1" Grid.Row="5" Style="{StaticResource TextBoxInputStyle}" />
+        <TextBox Name="ClientKey" Text="some key" Grid.Column="1" Grid.Row="5" Style="{StaticResource TextBoxInputStyle}" /> -->
 
 
-        <Button x:Name="Submit_Button" Content="Test" Click="TestData_Click" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="6" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Button x:Name="Submit_Button" Content="Test" Click="TestData_Click" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="4" Height="25" Width="40" />
 
     </Grid>
 </Page>
