@@ -11,6 +11,7 @@ namespace PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse
         [property: JsonPropertyName("transaction_status")] string transaction_status,
         [property: JsonPropertyName("transaction_subject")] string transaction_subject,
         [property: JsonPropertyName("transaction_note")] string transaction_note,
+        [property: JsonPropertyName("custom_field")] string custom_field,
         [property: JsonPropertyName("transaction_initiation_date")] string transaction_initiation_date,
         [property: JsonPropertyName("transaction_updated_date")] string transaction_updated_date,
         [property: JsonPropertyName("transaction_amount")] TransactionAmount transaction_amount,
