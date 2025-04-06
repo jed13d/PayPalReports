@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace PayPalReports.Services
 {
-    internal class PayPalService
+    class PayPalService
     {
         private string[] _apiData = new string[6];
         private PayPalTokenResponse? _tokenData;
@@ -62,7 +62,7 @@ namespace PayPalReports.Services
 
             Debug.WriteLine($"TryGetPayPalData, starting null checks.");
             // Basic null check
-            if (payPalReportDetails != null && !string.IsNullOrEmpty(payPalReportDetails.StartDate) && !string.IsNullOrEmpty(payPalReportDetails.EndDate))
+            if (payPalReportDetails != null)
             {
                 Debug.WriteLine($"TryGetPayPalData, assigning local variables.");
                 _payPalReportDetails = payPalReportDetails;
@@ -72,6 +72,7 @@ namespace PayPalReports.Services
                 Task.Run(RequestReportData).Wait();
 
                 Debug.WriteLine($"TryGetPayPalData, reassigning reference variable data.");
+                DebugOutputPayPalReportDetails();
                 payPalReportDetails = _payPalReportDetails;
                 success = true;
             }
@@ -94,14 +95,21 @@ namespace PayPalReports.Services
         {
             Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
 
-            Debug.WriteLine($"Start Date: {_payPalReportDetails?.StartDate}");
+            Debug.WriteLine($"Start Date: {_payPalReportDetails?.GetStartDateISO()}");
             Debug.WriteLine($"Balance: {_payPalReportDetails?.PayPalStartBalanceResponse?.balances[0].total_balance.value}\n");
 
-            Debug.WriteLine($"End Date: {_payPalReportDetails?.EndDate}");
+            Debug.WriteLine($"End Date: {_payPalReportDetails?.GetEndDateISO()}");
             Debug.WriteLine($"Balance: {_payPalReportDetails?.PayPalEndBalanceResponse?.balances[0].total_balance.value}\n");
 
+
+            Debug.WriteLine($"Number of transactions: {_payPalReportDetails?.PayPalTransactionResponse?.transaction_details.Length}");
+            Debug.WriteLine($"Start date: {_payPalReportDetails?.PayPalTransactionResponse?.start_date}");
+            Debug.WriteLine($"End date: {_payPalReportDetails?.PayPalTransactionResponse?.end_date}");
+            Debug.WriteLine($"Total items: {_payPalReportDetails?.PayPalTransactionResponse?.total_items}");
+            Debug.WriteLine($"Total pages: {_payPalReportDetails?.PayPalTransactionResponse?.total_pages}");
+
             Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.account_number}");
-            Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0].transaction_info.transaction_id}");
+            Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0]?.transaction_info.transaction_id}");
 
             Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
         }
@@ -131,6 +139,7 @@ namespace PayPalReports.Services
 
                     // Construct URL
                     string transactionURL = $"{_apiData[URL]}{PAYPAL_BALANCE_ENDPOINT}?{timeParameter}";
+                    Debug.WriteLine($"RequestBalance Request URL: {transactionURL}");
 
                     // Multi-attempt request loop
                     for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
@@ -176,7 +185,7 @@ namespace PayPalReports.Services
                         }
                         else
                         {
-                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode}");
+                            Debug.WriteLine($"RequestBalance Bad Response: {response.StatusCode}");
                         }
                     }   // end for
                 }   // end using
@@ -208,12 +217,13 @@ namespace PayPalReports.Services
                 Task.Delay(100).Wait();
 
                 Debug.WriteLine($"Sending start balance request");
-                Task sBalanceRequest = RequestBalance(_payPalReportDetails!.StartDate, BalanceDateType.Start);
+                Task sBalanceRequest = RequestBalance(_payPalReportDetails!.GetStartDateISO(), BalanceDateType.Start);
                 Task.Delay(100).Wait();
 
                 Debug.WriteLine($"Sending end balance request");
-                Task eBalanceRequest = RequestBalance(_payPalReportDetails!.EndDate, BalanceDateType.End);
+                Task eBalanceRequest = RequestBalance(_payPalReportDetails!.GetEndDateISO(), BalanceDateType.End);
 
+                Debug.WriteLine($"Waiting on requests");
                 await sBalanceRequest;
                 await eBalanceRequest;
                 await transactionRequest;
@@ -303,11 +313,12 @@ namespace PayPalReports.Services
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(_tokenData.token_type, _tokenData.access_token);
 
                     // Prepare Request Parameters
-                    string endDate = $"{END_DATE_PARAMTER}={_payPalReportDetails!.EndDate}";
-                    string startDate = $"{START_DATE_PARAMTER}={_payPalReportDetails!.StartDate}";
+                    string endDate = $"{END_DATE_PARAMTER}={_payPalReportDetails!.GetEndDateISO()}";
+                    string startDate = $"{START_DATE_PARAMTER}={_payPalReportDetails!.GetEndDateISO()}";
 
                     // Construct URL
                     string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
+                    Debug.WriteLine($"RequestTransactionInfo Request URL: {transactionURL}");
 
                     // Multi-attempt request loop
                     for (int i = 0; i < MAX_REQUEST_RETRYS; i++)
@@ -342,7 +353,7 @@ namespace PayPalReports.Services
                         }
                         else
                         {
-                            Debug.WriteLine($"RequestToken Bad Response: {response.StatusCode} : {response.Content}");
+                            Debug.WriteLine($"RequestTransactionInfo Bad Response: {response.StatusCode} : {response.Content}");
                             return;
                         }
                     }   // end for
