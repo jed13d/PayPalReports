@@ -4,6 +4,9 @@ using System.Windows.Controls;
 
 namespace PayPalReports
 {
+    /// <summary>
+    /// Custom class used to create selectable tabs for navigation
+    /// </summary>
     class NavTab : ListBoxItem
     {
         public static readonly DependencyProperty NavLinkProperty = DependencyProperty.Register("NavLink", typeof(Uri), typeof(NavTab), new PropertyMetadata(null));
