@@ -23,6 +23,7 @@ namespace PayPalReports
             DefaultTab.IsSelected = true;
         }
 
+        // Navigation Tabs
         private void ListBoxTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             NavTab? navtab = TabRow.SelectedItem as NavTab;
@@ -32,6 +33,7 @@ namespace PayPalReports
             }
         }
 
+        // TODO, generate window with about information
         private void MenuItem_About_Click(object sender, RoutedEventArgs e)
         {
             Debug.WriteLine("Sender: {0} --- eventArgs: {1}", sender, e);
@@ -42,6 +44,7 @@ namespace PayPalReports
             this.Close();
         }
 
+        // TODO, produce instructions, help file? README in repo?
         private void MenuItem_Help_Click(object sender, RoutedEventArgs e)
         {
             Debug.WriteLine("Sender: {0} --- eventArgs: {1}", sender, e);
@@ -76,7 +79,7 @@ namespace PayPalReports
         }
 
         /**
-         * Notes for restoring
+         * Notes for restoring      TODO
          *      RestoreBounds   - need to modify position to curser position
          * */
         private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -84,6 +87,7 @@ namespace PayPalReports
             if (this.WindowState == WindowState.Maximized)
             {
                 TitleBar_MaximizeRestoreButtonClick(sender, e);
+                // reposition to mouse here - TODO
             }
             DragMove();
         }
