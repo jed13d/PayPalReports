@@ -3,6 +3,7 @@ using PayPalReports.CustomEvents;
 using PayPalReports.DataModels;
 using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
+using System.Diagnostics;
 using System.Windows.Controls;
 
 namespace PayPalReports.Pages
@@ -83,7 +84,35 @@ namespace PayPalReports.Pages
         {
             UpdateStatusText($"Generating report.");
             ExcelReportContext excelReportContext = new(payPalReportDetails, DestinationPath.Text);
+            DebugOutputPayPalReportDetails(payPalReportDetails);
             return _excelService.GenerateReport(excelReportContext);
+            //return true;
+        }
+
+        private void DebugOutputPayPalReportDetails(PayPalReportDetails payPalReportDetails)
+        {
+            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
+
+            Debug.WriteLine($"Start Date: {payPalReportDetails?.GetStartDateISO()}");
+            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalStartBalanceResponse?.balances[0].total_balance.value}\n");
+
+            Debug.WriteLine($"End Date: {payPalReportDetails?.GetEndDateISO()}");
+            Debug.WriteLine($"Balance: {payPalReportDetails?.PayPalEndBalanceResponse?.balances[0].total_balance.value}\n");
+
+
+            Debug.WriteLine($"Number of transactions: {payPalReportDetails?.PayPalTransactionResponse?.transaction_details.Length}");
+            Debug.WriteLine($"Start date: {payPalReportDetails?.PayPalTransactionResponse?.start_date}");
+            Debug.WriteLine($"End date: {payPalReportDetails?.PayPalTransactionResponse?.end_date}");
+            Debug.WriteLine($"Total items: {payPalReportDetails?.PayPalTransactionResponse?.total_items}");
+            Debug.WriteLine($"Total pages: {payPalReportDetails?.PayPalTransactionResponse?.total_pages}");
+
+            Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.account_number}");
+            if (payPalReportDetails?.PayPalTransactionResponse?.transaction_details.Length > 0)
+            {
+                Debug.WriteLine($"Account Number: {payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0]?.transaction_info.transaction_id}");
+            }
+
+            Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
         }
 
         private void ClearStatusText()

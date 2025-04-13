@@ -20,8 +20,8 @@ namespace PayPalReports.Services
         private readonly string PAYPAL_DATA_FILE = "pdata.dat";
 
         private readonly int URL = 0;
-        private readonly int ID = 4;
-        private readonly int KEY = 5;
+        private readonly int ID = 2;
+        private readonly int KEY = 3;
 
         private readonly int MAX_REQUEST_RETRYS = 5;
 
@@ -109,7 +109,10 @@ namespace PayPalReports.Services
             Debug.WriteLine($"Total pages: {_payPalReportDetails?.PayPalTransactionResponse?.total_pages}");
 
             Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.account_number}");
-            Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0]?.transaction_info.transaction_id}");
+            if (_payPalReportDetails?.PayPalTransactionResponse?.transaction_details.Length > 0)
+            {
+                Debug.WriteLine($"Account Number: {_payPalReportDetails?.PayPalTransactionResponse?.transaction_details[0]?.transaction_info.transaction_id}");
+            }
 
             Debug.WriteLine($"##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
         }
