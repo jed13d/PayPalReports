@@ -1,4 +1,5 @@
-﻿using PayPalReports.CustomEvents;
+﻿using Microsoft.Extensions.Logging;
+using PayPalReports.CustomEvents;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -11,9 +12,11 @@ namespace PayPalReports
     /// </summary>
     public partial class MainWindow : Window, IStatusEventListener
     {
-
-        public MainWindow()
+        private readonly ILogger<MainWindow> LOGGER;
+        public MainWindow(ILogger<MainWindow> mainWindowLogger)
         {
+            LOGGER = mainWindowLogger;
+
             InitializeComponent();
 
             StatusEvent.RegisterListener(this);
@@ -105,6 +108,7 @@ namespace PayPalReports
             {
                 StatusTextBlock.Text = message;
             }
+            LOGGER.LogInformation($"Main Window status updated to: {StatusTextBlock.Text}");
         }
 
         // The following is only for proper maximizing of the window (may remove resizing)
