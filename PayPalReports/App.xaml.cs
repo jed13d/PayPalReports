@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using PayPalReports.Contexts;
 using PayPalReports.CustomEvents;
 using PayPalReports.Pages;
@@ -21,33 +20,37 @@ namespace PayPalReports
         private readonly IHost HOST;
         private readonly IServiceProvider SERVICE_PROVIDER;
         private readonly string LOG_FILE_PATH = "log-file.txt";
-        private readonly LogLevel MIN_LOG_LEVEL;
 
-        private readonly string CLA_DEBUG_MODE_FLAG = "-D";
+        // debug mode append "/Debug:1"
+        private readonly string CLA_DEBUG_MODE_FLAG = "Debug";
         private readonly string CLA_TRUE = "1";
 
         public App()
         {
-            //if (_commandLineArgs.ContainsKey(CLA_DEBUG_MODE_FLAG) && _commandLineArgs[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
-            //{
-            //    MIN_LOG_LEVEL = LogLevel.Debug;
-            //}
-            //else
-            //{
-            //    MIN_LOG_LEVEL = LogLevel.Information;
-            //}
+            // Parse command line arguments, for now debug mode or not
+            if (_commandLineArgs.Count > 0 && _commandLineArgs.ContainsKey(CLA_DEBUG_MODE_FLAG) && _commandLineArgs[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
+                    .CreateLogger();
 
-            // Setup Logger
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            }
+            else
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Information()
+                    .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
+                    .CreateLogger();
+
+            }
 
             // Setup host
             IHostBuilder hostBuilder = Host.CreateDefaultBuilder();
             hostBuilder.ConfigureLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
             hostBuilder.ConfigureServices(s => ConfigureServices(s));
 
+            // initialize readonly variables 
             HOST = hostBuilder.Build();
             SERVICE_PROVIDER = HOST.Services.GetRequiredService<IServiceProvider>();
         }
@@ -98,6 +101,7 @@ namespace PayPalReports
             base.OnStartup(e);
         }
 
+        // customizing unhandled errors / crashes -- TODO
         protected void CrashHandler(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             // Log the error.
@@ -109,15 +113,19 @@ namespace PayPalReports
             e.Handled = true;
         }
 
+        // Setup IServiceCollection for Dependency Injection
         private void ConfigureServices(IServiceCollection services)
         {
+            // custom event for updating status bar in main window
             services.AddSingleton<StatusEvent>();
 
+            // ViewModels
             services.AddSingleton<MainViewModel>(s => new MainViewModel(s));
 
             // contexts
             services.AddSingleton<FrameNavigationContext>();
 
+            // pages
             services.AddTransient<ConfigurationPage>(s => new ConfigurationPage(s));
             services.AddTransient<ReportsPage>(s => new ReportsPage(s));
 
