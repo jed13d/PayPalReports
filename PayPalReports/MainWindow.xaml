@@ -160,18 +160,6 @@
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
- <!--               <ListBoxItem Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center">
-                    Report
-                </ListBoxItem>
-                <ListBoxItem Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center">
-                    Configuration
-                </ListBoxItem> -->
-                <!--                <local:NavTab x:Name="DefaultTab" Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ReportsPage.xaml">
-                    Reports
-                </local:NavTab>
-                <local:NavTab Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ConfigurationPage.xaml">
-                    Configuration
-                </local:NavTab> -->
             </ListBox>
 
             <!-- Bottom Status Bar-->
