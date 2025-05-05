@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PayPalReports"
         xmlns:svg="http://sharpvectors.codeplex.com/runtime/"
-        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/" 
+        xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:viewmodels="clr-namespace:PayPalReports.ViewModels" 
+        d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="PayPal Reports" Height="300" Width="600"
         WindowStyle="None">
@@ -58,8 +61,8 @@
                         </MenuItem>
                     </MenuItem>
                     <MenuItem Header="_Help" Height="32">
-                        <MenuItem Header="_About" Click="MenuItem_About_Click" />
-                        <MenuItem Header="_Help" Click="MenuItem_Help_Click" />
+                        <MenuItem Header="_About" Command="{Binding MenuItem_About_Click_Command}" />
+                        <MenuItem Header="_Help" Command="{Binding MenuItem_Help_Click_Command}" />
                     </MenuItem>
                 </Menu>
             </StackPanel>
@@ -148,20 +151,35 @@
         <DockPanel Background="#1f1f1f" LastChildFill="True" Margin="5,0,5,5">
             
             <!-- Tabs -->
-            <ListBox x:Name="TabRow" DockPanel.Dock="Top" SelectionMode="Single" HorizontalAlignment="Left" Height="32" Style="{StaticResource ListBoxTabRowStyle}" SelectionChanged="ListBoxTabs_SelectionChanged">
-                <local:NavTab x:Name="DefaultTab" Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ReportsPage.xaml">
+            <ListBox x:Name="TabRow" DockPanel.Dock="Top" SelectionMode="Single" HorizontalAlignment="Left" Height="32" Style="{StaticResource ListBoxTabRowStyle}" 
+                     SelectionChanged="ListBoxTabs_SelectionChanged" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=FramePages}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Title}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+ <!--               <ListBoxItem Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center">
+                    Report
+                </ListBoxItem>
+                <ListBoxItem Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center">
+                    Configuration
+                </ListBoxItem> -->
+                <!--                <local:NavTab x:Name="DefaultTab" Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ReportsPage.xaml">
                     Reports
                 </local:NavTab>
                 <local:NavTab Style="{DynamicResource ListBoxItemTabStyle}" HorizontalAlignment="Center" NavLink="/Pages/ConfigurationPage.xaml">
                     Configuration
-                </local:NavTab>
+                </local:NavTab> -->
             </ListBox>
 
             <!-- Bottom Status Bar-->
-            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="Status text" />
+            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="{Binding StatusText}" />
 
             <!-- Content -->
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="Fuchsia" />
+
         </DockPanel>
     </DockPanel>
 </Window>

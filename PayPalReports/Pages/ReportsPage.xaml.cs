@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using PayPalReports.CustomEvents;
 using PayPalReports.DataModels;
 using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
@@ -11,7 +10,7 @@ namespace PayPalReports.Pages
     /// <summary>
     /// Interaction logic for ReportSetupPage.xaml
     /// </summary>
-    public partial class ReportSetupPage : Page
+    public partial class ReportsPage : Page
     {
         private PayPalService _payPalService = new();
         private ExcelService _excelService = new();
@@ -25,10 +24,11 @@ namespace PayPalReports.Pages
         public DateTime EndDate { get; set; }
         public DateTime StartDate { get; set; }
 
-        public ReportSetupPage()
+        private ReportsPage() => InitializeComponent();
+
+        public ReportsPage(IServiceProvider services) : this()
         {
-            InitializeComponent();
-            ClearStatusText();
+            //ClearStatusText();
         }
 
         private void Destination_Search_Click(object sender, EventArgs e)
@@ -126,7 +126,7 @@ namespace PayPalReports.Pages
          * */
         private void UpdateStatusText(string message)
         {
-            StatusEvent.Raise(message);
+            //StatusEvent.Raise(message);
         }
     }
 }

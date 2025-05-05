@@ -1,27 +1,24 @@
-﻿using System.Diagnostics;
-
-namespace PayPalReports.CustomEvents
+﻿namespace PayPalReports.CustomEvents
 {
-    class StatusEvent
+    public class StatusEvent
     {
-        private static List<IStatusEventListener> _eventListeners = new();
+        private List<IStatusEventListener> _eventListeners = new();
 
-        private StatusEvent() { }
+        public StatusEvent() { }
 
-        public static void Raise(string message)
+        public void Raise(string message)
         {
-            Debug.WriteLine($"Status Update: {message}");
             foreach (IStatusEventListener listener in _eventListeners)
             {
                 listener.UpdateStatusEvent(message);
             }
         }
 
-        public static void RegisterListener(IStatusEventListener listener)
+        public void RegisterListener(IStatusEventListener listener)
         {
             _eventListeners.Add(listener);
         }
-        public static void UnRegisterListener(IStatusEventListener listener)
+        public void UnRegisterListener(IStatusEventListener listener)
         {
             _eventListeners.Remove(listener);
         }

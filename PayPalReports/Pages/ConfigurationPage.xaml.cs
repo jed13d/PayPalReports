@@ -1,5 +1,4 @@
-﻿using PayPalReports.CustomEvents;
-using PayPalReports.Services;
+﻿using PayPalReports.Services;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,11 +11,12 @@ namespace PayPalReports.Pages
         private readonly string DATA_SAVED = "Configuration data saved. For security reasons, the form has been cleared and the data stored will not be shown.";
         private readonly string PAYPAL_DATA_FILE = "pdata.dat";
 
-        public ConfigurationPage()
-        {
-            InitializeComponent();
 
-            TestConfigurationStatus();
+        private ConfigurationPage() => InitializeComponent();
+
+        public ConfigurationPage(IServiceProvider services) : this()
+        {
+            //TestConfigurationStatus();
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -44,7 +44,7 @@ namespace PayPalReports.Pages
          * */
         private byte[] CreateDataString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             sb.AppendFormat("{0}\n", PayPalURL.Text);
             sb.AppendFormat("{0}\n", Region.Text);
@@ -73,7 +73,7 @@ namespace PayPalReports.Pages
          * */
         private void UpdateStatusText(string message)
         {
-            StatusEvent.Raise(message);
+            //StatusEvent.Raise(message);
         }
     }
 }

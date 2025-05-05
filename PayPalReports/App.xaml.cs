@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PayPalReports.Contexts;
+using PayPalReports.CustomEvents;
+using PayPalReports.Pages;
+using PayPalReports.ViewModels;
 using Serilog;
 using System.Collections;
 using System.Diagnostics;
@@ -12,7 +16,7 @@ namespace PayPalReports
 {
     public partial class App : Application
     {
-        private static Hashtable _commandLineArgs = new Hashtable();
+        private static Hashtable _commandLineArgs = [];
 
         private readonly IHost HOST;
         private readonly IServiceProvider SERVICE_PROVIDER;
@@ -24,14 +28,14 @@ namespace PayPalReports
 
         public App()
         {
-            if (_commandLineArgs.ContainsKey(CLA_DEBUG_MODE_FLAG) && _commandLineArgs[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
-            {
-                MIN_LOG_LEVEL = LogLevel.Debug;
-            }
-            else
-            {
-                MIN_LOG_LEVEL = LogLevel.Information;
-            }
+            //if (_commandLineArgs.ContainsKey(CLA_DEBUG_MODE_FLAG) && _commandLineArgs[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
+            //{
+            //    MIN_LOG_LEVEL = LogLevel.Debug;
+            //}
+            //else
+            //{
+            //    MIN_LOG_LEVEL = LogLevel.Information;
+            //}
 
             // Setup Logger
             Log.Logger = new LoggerConfiguration()
@@ -105,16 +109,23 @@ namespace PayPalReports
             e.Handled = true;
         }
 
-        private void ConfigureLogger(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
-        {
-
-        }
-
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging(builder => builder.AddConsole());
+            services.AddSingleton<StatusEvent>();
 
-            services.AddSingleton<MainWindow>(s => new MainWindow(s.GetRequiredService<ILogger<MainWindow>>()));
+            services.AddSingleton<MainViewModel>(s => new MainViewModel(s));
+
+            // contexts
+            services.AddSingleton<FrameNavigationContext>();
+
+            services.AddTransient<ConfigurationPage>(s => new ConfigurationPage(s));
+            services.AddTransient<ReportsPage>(s => new ReportsPage(s));
+
+            // Main Window
+            services.AddSingleton<MainWindow>(s => new MainWindow(s)
+            {
+                DataContext = s.GetRequiredService<MainViewModel>()
+            });
 
         }
     }

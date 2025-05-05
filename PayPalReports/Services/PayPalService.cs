@@ -1,5 +1,4 @@
-﻿using PayPalReports.CustomEvents;
-using PayPalReports.DataModels.PayPalAPI;
+﻿using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.DataModels.PayPalAPI.PayPalBalanceResponse;
 using PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse;
 using PayPalReports.Globals;
@@ -370,7 +369,7 @@ namespace PayPalReports.Services
          * */
         private void UpdateStatusText(string message)
         {
-            StatusEvent.Raise(message);
+            //StatusEvent.Raise(message);
         }
     }
 }

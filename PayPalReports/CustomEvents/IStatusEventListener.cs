@@ -1,6 +1,6 @@
 ﻿namespace PayPalReports.CustomEvents
 {
-    interface IStatusEventListener
+    public interface IStatusEventListener
     {
         public void UpdateStatusEvent(string message);
     }

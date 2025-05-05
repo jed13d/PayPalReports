@@ -1,8 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using PayPalReports.Commands;
+using PayPalReports.Contexts;
 using PayPalReports.CustomEvents;
-using System.Diagnostics;
+using PayPalReports.Pages;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Interop;
 
 namespace PayPalReports
@@ -10,36 +15,50 @@ namespace PayPalReports
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, IStatusEventListener
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public List<NavigateFrameCommand> FramePages { get; private set; }
+
+        public Page CurrentFramePage => FRAME_NAVIGATION_CONTEXT.CurrentPage;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private readonly ILogger<MainWindow> LOGGER;
-        public MainWindow(ILogger<MainWindow> mainWindowLogger)
+        private readonly StatusEvent STATUS_EVENT;
+        private readonly IServiceProvider SERVICE_PROVIDER;
+        private readonly FrameNavigationContext FRAME_NAVIGATION_CONTEXT;
+
+
+        public MainWindow(IServiceProvider serviceProvider)
         {
-            LOGGER = mainWindowLogger;
+            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+            STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
+            SERVICE_PROVIDER = serviceProvider;
+
+            FRAME_NAVIGATION_CONTEXT = serviceProvider.GetRequiredService<FrameNavigationContext>();
+            FRAME_NAVIGATION_CONTEXT.CurrentPageChanged += OnCurrentPageChanged;
+
+            //FRAME_NAVIGATION_CONTEXT.CurrentPage = serviceProvider.GetRequiredService<ReportsPage>();
+
+            NavigateFrameCommand ReportFrameNavigateCommand = new(serviceProvider.GetRequiredService<FrameNavigationContext>(), serviceProvider.GetRequiredService<ReportsPage>(), "Report");
+            NavigateFrameCommand ConfigurationFrameNavigateCommand = new(serviceProvider.GetRequiredService<FrameNavigationContext>(), serviceProvider.GetRequiredService<ConfigurationPage>(), "Configuration");
+
+            FramePages = [ReportFrameNavigateCommand, ConfigurationFrameNavigateCommand];
+            OnPropertyChanged(nameof(FramePages));
 
             InitializeComponent();
 
-            StatusEvent.RegisterListener(this);
-
             restoreButton.Visibility = Visibility.Collapsed;
-
-            DefaultTab.IsSelected = true;
         }
 
-        // Navigation Tabs
-        private void ListBoxTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        protected void OnPropertyChanged(string propertyName)
         {
-            NavTab? navtab = TabRow.SelectedItem as NavTab;
-            if (navtab != null)
-            {
-                ContentFrame.Navigate(navtab.NavLink);
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // TODO, generate window with about information
-        private void MenuItem_About_Click(object sender, RoutedEventArgs e)
+        private void OnCurrentPageChanged()
         {
-            Debug.WriteLine("Sender: {0} --- eventArgs: {1}", sender, e);
+            ContentFrame.Navigate(CurrentFramePage);
         }
 
         private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
@@ -47,10 +66,13 @@ namespace PayPalReports
             this.Close();
         }
 
-        // TODO, produce instructions, help file? README in repo?
-        private void MenuItem_Help_Click(object sender, RoutedEventArgs e)
+        // Navigation Tabs
+        private void ListBoxTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Debug.WriteLine("Sender: {0} --- eventArgs: {1}", sender, e);
+            //LOGGER.LogDebug("Sender: {@Sender} \n eventArgs: {@EventArgs}", sender, e);
+
+            // Cast sender to Listbox, cast SelectedItem to NavigateFrameCommand, then execute with unused arg
+            ((NavigateFrameCommand)((ListBox)sender).SelectedItem)?.Execute(null);
         }
 
         private void TitleBar_CloseButtonClick(object sender, RoutedEventArgs e)
@@ -60,8 +82,8 @@ namespace PayPalReports
 
         private void TitleBar_MaximizeRestoreButtonClick(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine($"{this.RestoreBounds}");
-            Debug.WriteLine($"{this.Top}");
+            LOGGER.LogDebug("{RestoreBounds}", this.RestoreBounds);
+            LOGGER.LogDebug("{Top}", this.Top);
             if (this.WindowState == WindowState.Maximized)
             {
                 this.WindowState = WindowState.Normal;
@@ -95,22 +117,6 @@ namespace PayPalReports
             DragMove();
         }
 
-        /**
-         * Event-Driven method for messaging the user through the UI
-         * */
-        public void UpdateStatusEvent(string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                StatusTextBlock.Text = "";
-            }
-            else
-            {
-                StatusTextBlock.Text = message;
-            }
-            LOGGER.LogInformation($"Main Window status updated to: {StatusTextBlock.Text}");
-        }
-
         // The following is only for proper maximizing of the window (may remove resizing)
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -124,15 +130,15 @@ namespace PayPalReports
             {
                 // We need to tell the system what our size should be when maximized. Otherwise it will cover the whole screen,
                 // including the task bar.
-                MINMAXINFO mmi = (MINMAXINFO)Marshal.PtrToStructure(lParam, typeof(MINMAXINFO));
+                MINMAXINFO mmi = (MINMAXINFO)Marshal.PtrToStructure<MINMAXINFO>(lParam);
 
                 // Adjust the maximized size and position to fit the work area of the correct monitor
                 IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 
                 if (monitor != IntPtr.Zero)
                 {
-                    MONITORINFO monitorInfo = new MONITORINFO();
-                    monitorInfo.cbSize = Marshal.SizeOf(typeof(MONITORINFO));
+                    MONITORINFO monitorInfo = new();
+                    monitorInfo.cbSize = Marshal.SizeOf<MONITORINFO>();
                     GetMonitorInfo(monitor, ref monitorInfo);
                     RECT rcWorkArea = monitorInfo.rcWork;
                     RECT rcMonitorArea = monitorInfo.rcMonitor;
