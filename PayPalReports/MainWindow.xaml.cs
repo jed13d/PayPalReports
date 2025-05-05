@@ -31,6 +31,8 @@ namespace PayPalReports
 
         public MainWindow(IServiceProvider serviceProvider)
         {
+            InitializeComponent();
+
             LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
             STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
             SERVICE_PROVIDER = serviceProvider;
@@ -38,15 +40,12 @@ namespace PayPalReports
             FRAME_NAVIGATION_CONTEXT = serviceProvider.GetRequiredService<FrameNavigationContext>();
             FRAME_NAVIGATION_CONTEXT.CurrentPageChanged += OnCurrentPageChanged;
 
-            //FRAME_NAVIGATION_CONTEXT.CurrentPage = serviceProvider.GetRequiredService<ReportsPage>();
-
             NavigateFrameCommand ReportFrameNavigateCommand = new(serviceProvider.GetRequiredService<FrameNavigationContext>(), serviceProvider.GetRequiredService<ReportsPage>(), "Report");
             NavigateFrameCommand ConfigurationFrameNavigateCommand = new(serviceProvider.GetRequiredService<FrameNavigationContext>(), serviceProvider.GetRequiredService<ConfigurationPage>(), "Configuration");
 
             FramePages = [ReportFrameNavigateCommand, ConfigurationFrameNavigateCommand];
             OnPropertyChanged(nameof(FramePages));
-
-            InitializeComponent();
+            TabRow.SelectedIndex = 0;
 
             restoreButton.Visibility = Visibility.Collapsed;
         }
