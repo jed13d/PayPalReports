@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,8 +16,12 @@ namespace PayPalReports.Services
         private readonly int TEMP_ENTROPY_SIZE = 16;
         private readonly byte[] HARD_ENTROPY_PIECES = { 0x61, 0xB3, 0xF0, 0x97 };
 
-        public DataEncryptionService()
+        private readonly ILogger<MainWindow> LOGGER;
+
+        public DataEncryptionService(IServiceProvider serviceProvider)
         {
+            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+
             _entropy = new byte[ENTROPY_SIZE];
             LoadEntropy();
         }
@@ -28,7 +33,7 @@ namespace PayPalReports.Services
         /// <returns>Decrypted data as a single string.</returns>
         public string RetrieveData(string filePath)
         {
-            string returnData = "";
+            string returnData = string.Empty;
 
             try
             {
@@ -46,8 +51,11 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error while decrypting data for \"{filePath}\": {ex.Message}");
+                LOGGER.LogError("Error while decrypting data for \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
             }
+
+            // delay for processing time
+            Thread.Sleep(1000);
 
             return returnData;
         }
@@ -71,11 +79,15 @@ namespace PayPalReports.Services
                 _bytesWritten = EncryptDataToStream(data, GetEntropy(), DataProtectionScope.CurrentUser, fStream);
 
                 fStream.Close();
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"A error occurred while storing data into the datafile: {filePath}, error: {ex}");
+                LOGGER.LogError("Error while storing data into the datafile: \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
             }
+
+            // delay for processing time
+            Thread.Sleep(1000);
 
             return _bytesWritten > 0;
         }
@@ -105,7 +117,7 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"A error occurred while testing the existence for a datafile: {filePath}, error: {ex}");
+                LOGGER.LogError("Error while testing the existence for a datafile: \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
             }
 
             return returnValue;
@@ -130,7 +142,7 @@ namespace PayPalReports.Services
             // Read the encrypted data from a stream.
             if (s.CanRead)
             {
-                s.Read(inBuffer, 0, length);
+                s.ReadExactly(inBuffer, 0, length);
 
                 outBuffer = ProtectedData.Unprotect(inBuffer, entropy, scope);
             }
@@ -226,7 +238,7 @@ namespace PayPalReports.Services
             {
                 FileStream fStream = new FileStream(ENTROPY_FILE_PATH, FileMode.Open, FileAccess.Read);
 
-                fStream.Read(_entropy, 0, ENTROPY_SIZE);
+                fStream.ReadExactly(_entropy, 0, ENTROPY_SIZE);
 
                 fStream.Close();
             }

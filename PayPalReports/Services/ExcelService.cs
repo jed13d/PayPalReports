@@ -42,7 +42,7 @@ namespace PayPalReports.Services
         private readonly string COL_DEBIT = "F";
         private readonly string COL_BALANCE = "G";
 
-        public ExcelService()
+        public ExcelService(IServiceProvider serviceProvider)
         {
             ExcelPackage.License.SetNonCommercialOrganization("Non-commercial Organization");
         }

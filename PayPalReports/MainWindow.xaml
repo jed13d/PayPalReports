@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PayPalReports"
         xmlns:svg="http://sharpvectors.codeplex.com/runtime/"
-        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/" 
-        xmlns:Behaviors="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:svgc="http://sharpvectors.codeplex.com/svgc/"
         xmlns:viewmodels="clr-namespace:PayPalReports.ViewModels" 
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
@@ -23,7 +22,7 @@
         <Grid DockPanel.Dock="Top" x:Name="AppTitleBar" Height="auto" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="LeftTitleBar" MinWidth="125" Width="125" />
-                <ColumnDefinition x:Name="CenterTitleBar" MinWidth="125" />
+                <ColumnDefinition x:Name="CenterTitleBar" MinWidth="125" Width="*" />
                 <ColumnDefinition x:Name="RightTitleBar" MinWidth="101" Width="101" />
             </Grid.ColumnDefinitions>
 
@@ -148,7 +147,7 @@
         </Grid>
 
         <!-- Main / Body -->
-        <DockPanel Background="#1f1f1f" LastChildFill="True" Margin="5,0,5,5">
+        <DockPanel Background="#1f1f1f" LastChildFill="True" Margin="5,0,5,5" MaxWidth="800">
             
             <!-- Tabs -->
             <ListBox x:Name="TabRow" DockPanel.Dock="Top" SelectionMode="Single" HorizontalAlignment="Left" Height="32" Style="{StaticResource ListBoxTabRowStyle}" 
@@ -166,7 +165,7 @@
             <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="{Binding StatusText}" />
 
             <!-- Content -->
-            <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="Fuchsia" />
+            <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="#FF1F1F1F" />
 
         </DockPanel>
     </DockPanel>

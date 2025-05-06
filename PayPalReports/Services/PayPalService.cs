@@ -1,4 +1,7 @@
-﻿using PayPalReports.DataModels.PayPalAPI;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using PayPalReports.CustomEvents;
+using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.DataModels.PayPalAPI.PayPalBalanceResponse;
 using PayPalReports.DataModels.PayPalAPI.PayPalTransactionResponse;
 using PayPalReports.Globals;
@@ -40,13 +43,21 @@ namespace PayPalReports.Services
         private readonly string PAYPAL_BALANCE_ENDPOINT = "/v1/reporting/balances";
         private readonly string PAYPAL_OAUTH_TOKEN_ENDPOINT = "/v1/oauth2/token";
 
+        private readonly ILogger<MainWindow> LOGGER;
+        private readonly StatusEvent STATUS_EVENT;
+        private readonly IServiceProvider SERVICE_PROVIDER;
+
         private enum BalanceDateType
         {
             Start = 0, End = 1
         }
 
-        public PayPalService()
+        public PayPalService(IServiceProvider serviceProvider)
         {
+            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+            STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
+            SERVICE_PROVIDER = serviceProvider;
+
             LoadApiInfo();
         }
 
@@ -77,8 +88,8 @@ namespace PayPalReports.Services
             }
             else
             {
-                UpdateStatusText($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
-                Debug.WriteLine($"{StandardMessages.UNLIKELY_INTERNAL_ERROR}");
+                UpdateStatusText($"{ConstantStrings.UNLIKELY_INTERNAL_ERROR}");
+                Debug.WriteLine($"{ConstantStrings.UNLIKELY_INTERNAL_ERROR}");
             }
             return success;
         }
@@ -118,7 +129,7 @@ namespace PayPalReports.Services
 
         private void LoadApiInfo()
         {
-            DataEncryptionService des = new();
+            DataEncryptionService des = SERVICE_PROVIDER.GetRequiredService<DataEncryptionService>();
 
             string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
 
@@ -174,14 +185,14 @@ namespace PayPalReports.Services
                                                     || ex is TaskCanceledException
                                                     || ex is EncoderFallbackException)
                             {
-                                Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                                Debug.WriteLine(ConstantStrings.UNLIKELY_INTERNAL_ERROR);
                                 Debug.WriteLine(ex);
                             }
                             catch (Exception ex) when (ex is UriFormatException
                                                     || ex is JsonException
                                                     || ex is NotSupportedException)
                             {
-                                Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                                Debug.WriteLine(ConstantStrings.POSSIBLE_PAYPAL_API_CHANGE);
                                 Debug.WriteLine(ex);
                             }
                         }
@@ -203,7 +214,7 @@ namespace PayPalReports.Services
             // if the token is cached, no reason to get a new one
             if (_tokenData == null)
             {
-                Debug.WriteLine($"{StandardMessages.PAYPAL_GETTING_TOKEN}");
+                Debug.WriteLine($"{ConstantStrings.PAYPAL_GETTING_TOKEN}");
 
                 await RequestToken();
                 Task.Delay(1000).Wait();
@@ -233,7 +244,7 @@ namespace PayPalReports.Services
             }
             else
             {
-                Debug.WriteLine($"{StandardMessages.PAYPAL_FAILED_GETTING_TOKEN}");
+                Debug.WriteLine($"{ConstantStrings.PAYPAL_FAILED_GETTING_TOKEN}");
             }
         }
 
@@ -253,7 +264,7 @@ namespace PayPalReports.Services
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                    Debug.WriteLine(ConstantStrings.UNLIKELY_INTERNAL_ERROR);
                     Debug.WriteLine(ex);
                     return;
                 }
@@ -284,14 +295,14 @@ namespace PayPalReports.Services
                                                 || ex is TaskCanceledException
                                                 || ex is EncoderFallbackException)
                         {
-                            Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                            Debug.WriteLine(ConstantStrings.UNLIKELY_INTERNAL_ERROR);
                             Debug.WriteLine(ex);
                         }
                         catch (Exception ex) when (ex is UriFormatException
                                                 || ex is JsonException
                                                 || ex is NotSupportedException)
                         {
-                            Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                            Debug.WriteLine(ConstantStrings.POSSIBLE_PAYPAL_API_CHANGE);
                             Debug.WriteLine(ex);
                         }
                     }
@@ -342,14 +353,14 @@ namespace PayPalReports.Services
                                                     || ex is TaskCanceledException
                                                     || ex is EncoderFallbackException)
                             {
-                                Debug.WriteLine(StandardMessages.UNLIKELY_INTERNAL_ERROR);
+                                Debug.WriteLine(ConstantStrings.UNLIKELY_INTERNAL_ERROR);
                                 Debug.WriteLine(ex);
                             }
                             catch (Exception ex) when (ex is UriFormatException
                                                     || ex is JsonException
                                                     || ex is NotSupportedException)
                             {
-                                Debug.WriteLine(StandardMessages.POSSIBLE_PAYPAL_API_CHANGE);
+                                Debug.WriteLine(ConstantStrings.POSSIBLE_PAYPAL_API_CHANGE);
                                 Debug.WriteLine(ex);
                             }
                         }

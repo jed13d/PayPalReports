@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using PayPalReports.DataModels;
 using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
@@ -12,8 +13,8 @@ namespace PayPalReports.Pages
     /// </summary>
     public partial class ReportsPage : Page
     {
-        private PayPalService _payPalService = new();
-        private ExcelService _excelService = new();
+        private PayPalService? _payPalService;
+        private ExcelService? _excelService;
 
         private readonly string END_OF_DAY_TIME = "23:59:59";
 
@@ -26,9 +27,11 @@ namespace PayPalReports.Pages
 
         private ReportsPage() => InitializeComponent();
 
-        public ReportsPage(IServiceProvider services) : this()
+        public ReportsPage(IServiceProvider serviceProvider) : this()
         {
             //ClearStatusText();
+            _payPalService = serviceProvider.GetRequiredService<PayPalService>();
+            _excelService = serviceProvider.GetRequiredService<ExcelService>();
         }
 
         private void Destination_Search_Click(object sender, EventArgs e)

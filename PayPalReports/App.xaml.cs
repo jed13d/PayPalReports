@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using PayPalReports.Contexts;
 using PayPalReports.CustomEvents;
 using PayPalReports.Pages;
+using PayPalReports.Services;
 using PayPalReports.ViewModels;
 using Serilog;
 using System.Collections;
@@ -121,12 +122,22 @@ namespace PayPalReports
 
             // ViewModels
             services.AddSingleton<MainViewModel>(s => new MainViewModel(s));
+            services.AddSingleton<ConfigurationPageViewModel>(s => new ConfigurationPageViewModel(s));
 
             // contexts
             services.AddSingleton<FrameNavigationContext>();
 
+            // services
+            services.AddTransient<DataEncryptionService>(s => new DataEncryptionService(s));
+            services.AddTransient<ExcelService>(s => new ExcelService(s));
+            services.AddTransient<PayPalService>(s => new PayPalService(s));
+
             // pages
-            services.AddTransient<ConfigurationPage>(s => new ConfigurationPage(s));
+            services.AddTransient<ConfigurationPage>(s => new ConfigurationPage(s)
+            {
+                DataContext = s.GetRequiredService<ConfigurationPageViewModel>()
+            });
+
             services.AddTransient<ReportsPage>(s => new ReportsPage(s));
 
             // Main Window

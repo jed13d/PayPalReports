@@ -4,6 +4,8 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:PayPalReports.Pages"
+      xmlns:viewmodels="clr-namespace:PayPalReports.ViewModels" 
+      d:DataContext="{d:DesignInstance Type=viewmodels:ConfigurationPageViewModel}"
       mc:Ignorable="d" 
       d:DesignHeight="180" d:DesignWidth="590"
       Title="PayPalConfigurationPage">
@@ -15,13 +17,12 @@
             <ColumnDefinition MinWidth="5" Width="5" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <!-- Labels -->
@@ -32,12 +33,12 @@
 
         <!-- Forms -->
         <!--<TextBox Name="PayPalURL" Text="https://api-m.paypal.com" Grid.Column="1" Grid.Row="0" Style="{StaticResource TextBoxInputStyle}" />-->
-        <TextBox Name="PayPalURL" Text="https://api-m.sandbox.paypal.com" Grid.Column="1" Grid.Row="0" Style="{StaticResource TextBoxInputStyle}" />
-        <TextBox Name="Region" Text="us" Grid.Column="1" Grid.Row="1" Style="{StaticResource TextBoxInputStyle}" />
-        <TextBox Name="ClientID" Text="some ID" Grid.Column="1" Grid.Row="2" Style="{StaticResource TextBoxInputStyle}" />
-        <TextBox Name="ClientKey" Text="some key" Grid.Column="1" Grid.Row="3" Style="{StaticResource TextBoxInputStyle}" />
+        <TextBox Name="PayPalURL" Text="{Binding Path=PayPalURL, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="0" Style="{StaticResource TextBoxInputStyle}" />
+        <TextBox Name="Region" Text="{Binding Path=Region, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="1" Style="{StaticResource TextBoxInputStyle}" />
+        <TextBox Name="ClientID" Text="{Binding Path=ClientID, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="2" Style="{StaticResource TextBoxInputStyle}" />
+        <TextBox Name="ClientKey" Text="{Binding Path=ClientKey, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="3" Style="{StaticResource TextBoxInputStyle}" />
 
-        <Button Content="Save" Click="SaveButton_Click" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="4" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Button Content="Save" Command="{Binding SaveConfigurationCommand}" Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="4" Height="25" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
         <!--<TextBlock x:Name="ConfigStatusBlock" Style="{StaticResource TextBlockStatusStyle}" Text="Sample text" Grid.Column="1" Grid.Row="6" />-->
     </Grid>

@@ -16,13 +16,12 @@
             <ColumnDefinition MinWidth="5" Width="5" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
+            <RowDefinition Height="36" MaxHeight="36" MinHeight="36" />
             <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
             <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
             <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="34" MaxHeight="34" MinHeight="34" />
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
