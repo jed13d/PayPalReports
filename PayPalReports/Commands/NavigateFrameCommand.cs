@@ -5,22 +5,22 @@ namespace PayPalReports.Commands
 {
     public class NavigateFrameCommand : BaseCommand
     {
-        private readonly FrameNavigationContext _context;
-        private readonly Page _destinationPage;
-        private readonly string _title;
+        private readonly FrameNavigationContext CONTEXT;
+        private readonly Page DESTINATION_PAGE;
+        private readonly string TITLE;
 
-        public string Title { get { return _title; } }
+        public string Title { get { return TITLE; } }
 
         public NavigateFrameCommand(FrameNavigationContext context, Page destinationPage, string title)
         {
-            _context = context;
-            _destinationPage = destinationPage;
-            _title = title;
+            CONTEXT = context;
+            DESTINATION_PAGE = destinationPage;
+            TITLE = title;
         }
 
         public override void Execute(object? parameter)
         {
-            _context.CurrentPage = _destinationPage;
+            CONTEXT.CurrentPage = DESTINATION_PAGE;
         }
     }
 }

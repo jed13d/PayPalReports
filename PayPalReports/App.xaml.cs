@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using PayPalReports.Contexts;
 using PayPalReports.CustomEvents;
 using PayPalReports.Pages;
@@ -7,7 +8,6 @@ using PayPalReports.Services;
 using PayPalReports.ViewModels;
 using Serilog;
 using System.Collections;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Threading;
@@ -16,7 +16,7 @@ namespace PayPalReports
 {
     public partial class App : Application
     {
-        private static Hashtable _commandLineArgs = [];
+        private static readonly Hashtable COMMAND_LINE_ARGS = [];
 
         private readonly IHost HOST;
         private readonly IServiceProvider SERVICE_PROVIDER;
@@ -26,24 +26,25 @@ namespace PayPalReports
         private readonly string CLA_DEBUG_MODE_FLAG = "Debug";
         private readonly string CLA_TRUE = "1";
 
+        private readonly ILogger<App> LOGGER;
+
         public App()
         {
             // Parse command line arguments, for now debug mode or not
-            if (_commandLineArgs.Count > 0 && _commandLineArgs.ContainsKey(CLA_DEBUG_MODE_FLAG) && _commandLineArgs[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
+            if (COMMAND_LINE_ARGS.Count > 0 && COMMAND_LINE_ARGS.ContainsKey(CLA_DEBUG_MODE_FLAG) && COMMAND_LINE_ARGS[CLA_DEBUG_MODE_FLAG]!.Equals(CLA_TRUE))
             {
                 Log.Logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
                     .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
-
             }
             else
             {
                 Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Information()
+                    //.MinimumLevel.Information()
+                    .MinimumLevel.Debug()
                     .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
-
             }
 
             // Setup host
@@ -54,6 +55,7 @@ namespace PayPalReports
             // initialize readonly variables 
             HOST = hostBuilder.Build();
             SERVICE_PROVIDER = HOST.Services.GetRequiredService<IServiceProvider>();
+            LOGGER = SERVICE_PROVIDER.GetRequiredService<ILogger<App>>();
         }
 
         public void App_Startup(object sender, StartupEventArgs e)
@@ -80,7 +82,7 @@ namespace PayPalReports
                         "The command line arguments are improperly formed. Use /argname:argvalue.");
 
                 // Store command line arg and value
-                _commandLineArgs[match.Groups["argname"].Value] = match.Groups["argvalue"].Value;
+                COMMAND_LINE_ARGS[match.Groups["argname"].Value] = match.Groups["argvalue"].Value;
             }
         }
 
@@ -107,7 +109,7 @@ namespace PayPalReports
         {
             // Log the error.
 
-            Debug.WriteLine($"Unhandled exception: {e.Exception}");
+            LOGGER.LogError("Unhandled exception: {Exception}", e.Exception);
 
             //CrashInfoWindow crashWindow = new CrashInfoWindow(e.Exception);
 
@@ -115,7 +117,7 @@ namespace PayPalReports
         }
 
         // Setup IServiceCollection for Dependency Injection
-        private void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
             // custom event for updating status bar in main window
             services.AddSingleton<StatusEvent>();
@@ -123,6 +125,7 @@ namespace PayPalReports
             // ViewModels
             services.AddSingleton<MainViewModel>(s => new MainViewModel(s));
             services.AddSingleton<ConfigurationPageViewModel>(s => new ConfigurationPageViewModel(s));
+            services.AddSingleton<ReportsPageViewModel>(s => new ReportsPageViewModel(s));
 
             // contexts
             services.AddSingleton<FrameNavigationContext>();
@@ -138,7 +141,10 @@ namespace PayPalReports
                 DataContext = s.GetRequiredService<ConfigurationPageViewModel>()
             });
 
-            services.AddTransient<ReportsPage>(s => new ReportsPage(s));
+            services.AddTransient<ReportsPage>(s => new ReportsPage(s)
+            {
+                DataContext = s.GetRequiredService<ReportsPageViewModel>()
+            });
 
             // Main Window
             services.AddSingleton<MainWindow>(s => new MainWindow(s)

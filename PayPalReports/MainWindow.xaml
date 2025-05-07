@@ -162,7 +162,7 @@
             </ListBox>
 
             <!-- Bottom Status Bar-->
-            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="{Binding StatusText}" />
+            <TextBlock x:Name="StatusTextBlock" DockPanel.Dock="Bottom" Style="{StaticResource TextBlockStatusStyle}" Text="{Binding Path=StatusText, UpdateSourceTrigger=PropertyChanged}" />
 
             <!-- Content -->
             <Frame x:Name="ContentFrame" NavigationUIVisibility="Hidden" Background="#FF1F1F1F" />

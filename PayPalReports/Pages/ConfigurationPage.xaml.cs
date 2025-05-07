@@ -7,7 +7,7 @@ namespace PayPalReports.Pages
 {
     public partial class ConfigurationPage : Page
     {
-        private readonly ILogger<MainWindow>? LOGGER;
+        private readonly ILogger<ConfigurationPage>? LOGGER;
         private readonly StatusEvent? STATUS_EVENT;
 
         private ConfigurationPage()
@@ -17,9 +17,8 @@ namespace PayPalReports.Pages
 
         public ConfigurationPage(IServiceProvider serviceProvider) : this()
         {
-            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+            LOGGER = serviceProvider.GetRequiredService<ILogger<ConfigurationPage>>();
             STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
-
         }
 
     }

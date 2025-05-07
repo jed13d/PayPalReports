@@ -1,18 +1,25 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PayPalReports.Contexts;
 using PayPalReports.CustomEvents;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace PayPalReports.ViewModels
 {
     internal class MainViewModel : BaseViewModel, IStatusEventListener
     {
+        public Page CurrentFramePage => FRAME_NAVIGATION_CONTEXT.CurrentPage;
+
         public ICommand? MenuItem_About_Click_Command { get; }  // TODO
         public ICommand? MenuItem_Help_Click_Command { get; }   // TODO
+        public ICommand? ListBoxTabs_SelectionChanged_Command { get; }   // TODO
 
         private readonly ILogger<MainWindow> LOGGER;
         private readonly StatusEvent STATUS_EVENT;
+        private readonly FrameNavigationContext FRAME_NAVIGATION_CONTEXT;
+
         private string _statusText = "";
         public string StatusText
         {
@@ -31,8 +38,20 @@ namespace PayPalReports.ViewModels
         {
             LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
             STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
+            FRAME_NAVIGATION_CONTEXT = serviceProvider.GetRequiredService<FrameNavigationContext>();
 
             STATUS_EVENT.RegisterListener(this);
+        }
+
+        // Navigation Tabs
+        public void ListBoxTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LOGGER.LogDebug("Sender: {@Sender} --- eventArgs: {@EventArgs}", sender, e);
+            //NavTab? navtab = TabRow.SelectedItem as NavTab;
+            //if (navtab != null)
+            //{
+            //    ContentFrame.Navigate(navtab.NavLink);
+            //}
         }
 
         // TODO, generate window with about information
@@ -60,5 +79,11 @@ namespace PayPalReports.ViewModels
 
             LOGGER.LogInformation("Main Window status updated to: {@Message}", message);
         }
+
+        private void OnCurrentPageChanged()
+        {
+            OnPropertyChanged(nameof(CurrentFramePage));
+        }
+
     }
 }

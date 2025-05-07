@@ -13,16 +13,21 @@ namespace PayPalReports.ViewModels
     {
         public ICommand SaveConfigurationCommand { get; }
 
-        public bool CanSaveConfiguration => HasURL() && HasRegion() && HasClientID() && HasClientKey();
+        public bool CanSaveConfiguration => HasURL && HasClientID && HasClientKey;
 
-        private readonly ILogger<MainWindow> LOGGER;
+        private readonly ILogger<ConfigurationPageViewModel> LOGGER;
         private readonly StatusEvent STATUS_EVENT;
         private readonly IServiceProvider SERVICE_PROVIDER;
 
         private string _paypalURL = string.Empty;
-        private string _region = string.Empty;
         private string _clientID = string.Empty;
         private string _clientKey = string.Empty;
+
+        private bool HasURL => !string.IsNullOrEmpty(PayPalURL);
+
+        private bool HasClientID => !string.IsNullOrEmpty(ClientID);
+
+        private bool HasClientKey => !string.IsNullOrEmpty(ClientKey);
 
         public string PayPalURL
         {
@@ -31,17 +36,6 @@ namespace PayPalReports.ViewModels
             {
                 _paypalURL = value;
                 OnPropertyChanged(nameof(PayPalURL));
-                OnPropertyChanged(nameof(CanSaveConfiguration));
-            }
-        }
-
-        public string Region
-        {
-            get => _region;
-            set
-            {
-                _region = value;
-                OnPropertyChanged(nameof(Region));
                 OnPropertyChanged(nameof(CanSaveConfiguration));
             }
         }
@@ -70,14 +64,13 @@ namespace PayPalReports.ViewModels
 
         public ConfigurationPageViewModel(IServiceProvider serviceProvider)
         {
-            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+            LOGGER = serviceProvider.GetRequiredService<ILogger<ConfigurationPageViewModel>>();
             STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
             SERVICE_PROVIDER = serviceProvider;
 
             SaveConfigurationCommand = new SaveConfigurationCommand(this);
 
             PayPalURL = ConstantStrings.DEFAULT_PAYPAL_API_URL;
-            Region = ConstantStrings.DEFAULT_PAYPAL_REGION;
 
             TestConfigurationStatus();
         }
@@ -99,30 +92,9 @@ namespace PayPalReports.ViewModels
             }
         }
 
-        public bool HasURL()
-        {
-            return !string.IsNullOrEmpty(PayPalURL);
-        }
-
-        public bool HasRegion()
-        {
-            return !string.IsNullOrEmpty(Region);
-        }
-
-        public bool HasClientID()
-        {
-            return !string.IsNullOrEmpty(ClientID);
-        }
-
-        public bool HasClientKey()
-        {
-            return !string.IsNullOrEmpty(ClientKey);
-        }
-
         private void ClearFormData()
         {
             PayPalURL = "";
-            Region = "";
             ClientID = "";
             ClientKey = "";
         }
@@ -135,7 +107,6 @@ namespace PayPalReports.ViewModels
             StringBuilder sb = new();
 
             sb.AppendFormat("{0}\n", PayPalURL);
-            sb.AppendFormat("{0}\n", Region);
             sb.AppendFormat("{0}\n", ClientID);
             sb.AppendFormat("{0}", ClientKey);
 
@@ -161,7 +132,7 @@ namespace PayPalReports.ViewModels
          * */
         private void UpdateStatusText(string message)
         {
-            STATUS_EVENT?.Raise(message);
+            STATUS_EVENT.Raise(message);
         }
     }
 }

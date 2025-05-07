@@ -16,11 +16,11 @@ namespace PayPalReports.Services
         private readonly int TEMP_ENTROPY_SIZE = 16;
         private readonly byte[] HARD_ENTROPY_PIECES = { 0x61, 0xB3, 0xF0, 0x97 };
 
-        private readonly ILogger<MainWindow> LOGGER;
+        private readonly ILogger<DataEncryptionService> LOGGER;
 
         public DataEncryptionService(IServiceProvider serviceProvider)
         {
-            LOGGER = serviceProvider.GetRequiredService<ILogger<MainWindow>>();
+            LOGGER = serviceProvider.GetRequiredService<ILogger<DataEncryptionService>>();
 
             _entropy = new byte[ENTROPY_SIZE];
             LoadEntropy();
@@ -51,7 +51,7 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                LOGGER.LogError("Error while decrypting data for \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
+                LOGGER.LogError("Error while decrypting data for \"{FilePath}\": {@Error}", filePath, ex);
             }
 
             // delay for processing time
@@ -83,7 +83,7 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                LOGGER.LogError("Error while storing data into the datafile: \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
+                LOGGER.LogError("Error while storing data into the datafile: \"{FilePath}\": {@Error}", filePath, ex);
             }
 
             // delay for processing time
@@ -117,7 +117,7 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                LOGGER.LogError("Error while testing the existence for a datafile: \"{FilePath}\": {ErrMessage}", filePath, ex.Message);
+                LOGGER.LogError("Error while storing the existence for a datafile: \"{FilePath}\": {@Error}", filePath, ex);
             }
 
             return returnValue;
@@ -248,7 +248,7 @@ namespace PayPalReports.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading entropy: {ex.Message}");
+                LOGGER.LogError("Error loading entropy:: {@Error}", ex);
             }
         }
 
