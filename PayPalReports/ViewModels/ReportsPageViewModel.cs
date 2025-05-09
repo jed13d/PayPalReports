@@ -136,16 +136,15 @@ namespace PayPalReports.ViewModels
                 Thread.Sleep(1000);
 
                 DebugOutputPayPalReportDetails(payPalReportDetails);
-                UpdateStatusText($"Generating report from data.");
 
-                //if (GenerateReport(payPalReportDetails))
-                //{
-                //    UpdateStatusText($"Report generation is complete.");
-                //}
-                //else
-                //{
-                //    UpdateStatusText($"There has been an error generating your report.");
-                //}
+                if (GenerateReport(payPalReportDetails))
+                {
+                    UpdateStatusText($"Report generation is complete.");
+                }
+                else
+                {
+                    UpdateStatusText($"There has been an error generating your report. Check the logs for more information.");
+                }
             }
             else
             {
@@ -158,11 +157,11 @@ namespace PayPalReports.ViewModels
 
         private void DebugOutputPayPalReportDetails(PayPalReportDetails payPalReportDetails)
         {
-            LOGGER.LogDebug("##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
+            LOGGER.LogDebug("##### DEBUG OUTPUT DATA REPORT-DETAILS START #####");
 
             LOGGER.LogDebug("{@ReportDetails}", payPalReportDetails);
 
-            LOGGER.LogDebug("##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
+            LOGGER.LogDebug("##### DEBUG OUTPUT DATA REPORT-DETAILS END #####");
         }
 
         private bool GenerateReport(PayPalReportDetails payPalReportDetails)

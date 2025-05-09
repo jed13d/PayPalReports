@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace PayPalReports.Contexts
+namespace PayPalReports.DataModels
 {
     public class FrameNavigationContext
     {
