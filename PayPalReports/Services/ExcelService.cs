@@ -62,7 +62,7 @@ namespace PayPalReports.Services
         {
             LOGGER.LogDebug("##### DEBUG OUTPUT DATA ExcelReportContext START #####");
 
-            LOGGER.LogDebug("{@ReportDetails}", payPalReportDetails);
+            LOGGER.LogDebug("{@ReportDetails}", reportContext);
 
             LOGGER.LogDebug("##### DEBUG OUTPUT DATA ExcelReportContext END #####");
         }
