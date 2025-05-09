@@ -41,8 +41,8 @@ namespace PayPalReports
             else
             {
                 Log.Logger = new LoggerConfiguration()
-                    //.MinimumLevel.Information()
-                    .MinimumLevel.Debug()
+                    .MinimumLevel.Information()
+                    //.MinimumLevel.Debug()
                     .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
             }
