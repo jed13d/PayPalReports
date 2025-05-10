@@ -25,6 +25,7 @@ namespace PayPalReports.ViewModels
         private readonly IServiceProvider SERVICE_PROVIDER;
 
         private readonly string END_OF_DAY_TIME = "23:59:59";
+        private readonly int MAX_DATE_RANGE = 31;
 
         private readonly string DIALOG_FILENAME = "Master-Ledger";
         private readonly string DIALOG_FILE_EXTENSION = ".xlsx";
@@ -112,6 +113,31 @@ namespace PayPalReports.ViewModels
             }
         }
 
+        private bool DatesAreValid()
+        {
+            // Fix EndDate if necessary
+            if (EndDate > DateTime.Now)
+            {
+                EndDate = DateTime.Now;
+            }
+
+            TimeSpan interval = EndDate - StartDate;
+
+            if (interval.TotalDays <= 0)
+            {
+                UpdateStatusText("Start Date must be a date before End Date");
+                return false;
+            }
+
+            if (interval.TotalDays > MAX_DATE_RANGE)
+            {
+                UpdateStatusText($"PayPal supports a maximum date range of {MAX_DATE_RANGE} days.");
+                return false;
+            }
+
+            return true;
+        }
+
         public void SubmitReportRequest()
         {
             // Disable button to prevent multiple submissions
@@ -119,36 +145,41 @@ namespace PayPalReports.ViewModels
 
             // Utilize DateTime object to convert UI form submission to ISO8601 Internet Date/Time Format
             string endDate = $"{EndDate.ToShortDateString()} {END_OF_DAY_TIME}";
+            EndDate = DateTime.Parse(endDate);
 
-            // Create context object for storing and passing data
-            PayPalReportDetails payPalReportDetails = new()
+            if (DatesAreValid())
             {
-                StartDate = StartDate,
-                EndDate = DateTime.Parse(endDate)
-            };
 
-            UpdateStatusText("Making request for data from PayPal.");
-
-            // Begin PayPalService series of requests for data pull
-            if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
-            {
-                // processing delay
-                Thread.Sleep(1000);
-
-                DebugOutputPayPalReportDetails(payPalReportDetails);
-
-                if (GenerateReport(payPalReportDetails))
+                // Create context object for storing and passing data
+                PayPalReportDetails payPalReportDetails = new()
                 {
-                    UpdateStatusText($"Report generation is complete.");
+                    StartDate = StartDate,
+                    EndDate = EndDate
+                };
+
+                UpdateStatusText("Making request for data from PayPal.");
+
+                // Begin PayPalService series of requests for data pull
+                if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
+                {
+                    // processing delay
+                    Thread.Sleep(1000);
+
+                    DebugOutputPayPalReportDetails(payPalReportDetails);
+
+                    if (GenerateReport(payPalReportDetails))
+                    {
+                        UpdateStatusText($"Report generation is complete.");
+                    }
+                    else
+                    {
+                        UpdateStatusText($"There has been an error generating your report. Check the logs for more information.");
+                    }
                 }
                 else
                 {
-                    UpdateStatusText($"There has been an error generating your report. Check the logs for more information.");
+                    UpdateStatusText($"There has been an error getting the data from PayPal.");
                 }
-            }
-            else
-            {
-                UpdateStatusText($"There has been an error getting the data from PayPal.");
             }
 
             // reenable button once complete

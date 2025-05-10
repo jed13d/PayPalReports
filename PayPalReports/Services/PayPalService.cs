@@ -29,6 +29,7 @@ namespace PayPalReports.Services
         private readonly string AS_OF_TIME = "as_of_time";
         private readonly string END_DATE_PARAMTER = "end_date";
         private readonly string FIELDS_PARAMETER = "fields=transaction_info,payer_info";
+        //private readonly string FIELDS_PARAMETER = "fields=all";
         private readonly string START_DATE_PARAMTER = "start_date";
         //private readonly string PAGE_SIZE_PARAMETER = "page_size=500";
 
@@ -56,8 +57,6 @@ namespace PayPalReports.Services
             LOGGER = serviceProvider.GetRequiredService<ILogger<PayPalService>>();
             STATUS_EVENT = serviceProvider.GetRequiredService<StatusEvent>();
             SERVICE_PROVIDER = serviceProvider;
-
-            LoadApiInfo();
         }
 
         /// <summary>
@@ -69,28 +68,31 @@ namespace PayPalReports.Services
         {
             bool success = false;
 
-            LOGGER.LogDebug("TryGetPayPalData, starting null checks.");
-            // Basic null check
-            if (payPalReportDetails != null)
+            if (LoadApiInfo())
             {
-                LOGGER.LogDebug("TryGetPayPalData, assigning local variables.");
-                _payPalReportDetails = payPalReportDetails;
+                LOGGER.LogDebug("TryGetPayPalData, starting null checks.");
+                // Basic null check
+                if (payPalReportDetails != null)
+                {
+                    LOGGER.LogDebug("TryGetPayPalData, assigning local variables.");
+                    _payPalReportDetails = payPalReportDetails;
 
-                LOGGER.LogDebug("TryGetPayPalData, calling aync task.");
+                    LOGGER.LogDebug("TryGetPayPalData, calling aync task.");
 
-                Task.Run(RequestReportData).Wait();
+                    Task.Run(RequestReportData).Wait();
 
-                LOGGER.LogDebug("TryGetPayPalData, reassigning reference variable data.");
+                    LOGGER.LogDebug("TryGetPayPalData, reassigning reference variable data.");
 
-                DebugOutputPayPalReportDetails();
+                    DebugOutputPayPalReportDetails();
 
-                payPalReportDetails = _payPalReportDetails;
-                success = true;
-            }
-            else
-            {
-                UpdateStatusText($"{ConstantStrings.UNLIKELY_INTERNAL_ERROR}");
-                LOGGER.LogDebug("{Error: {Message}", ConstantStrings.UNLIKELY_INTERNAL_ERROR);
+                    payPalReportDetails = _payPalReportDetails;
+                    success = true;
+                }
+                else
+                {
+                    UpdateStatusText($"{ConstantStrings.UNLIKELY_INTERNAL_ERROR}");
+                    LOGGER.LogDebug("{Error: {Message}", ConstantStrings.UNLIKELY_INTERNAL_ERROR);
+                }
             }
             return success;
         }
@@ -109,15 +111,20 @@ namespace PayPalReports.Services
             LOGGER.LogDebug("##### DEBUG OUTPUT DATA REPORT-DETAILS #####");
         }
 
-        private void LoadApiInfo()
+        private bool LoadApiInfo()
         {
+            bool success = false;
+
             DataEncryptionService des = SERVICE_PROVIDER.GetRequiredService<DataEncryptionService>();
 
             if (des.DataFileExists(PAYPAL_DATA_FILE))
             {
                 string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
                 _apiData = fileData.Split('\n');
+                success = true;
             }
+
+            return success;
         }
 
         private async Task RequestBalance(string atTime, BalanceDateType balanceDateType)
@@ -317,7 +324,7 @@ namespace PayPalReports.Services
 
                 // Prepare Request Parameters
                 string endDate = $"{END_DATE_PARAMTER}={_payPalReportDetails!.GetEndDateISO()}";
-                string startDate = $"{START_DATE_PARAMTER}={_payPalReportDetails!.GetEndDateISO()}";
+                string startDate = $"{START_DATE_PARAMTER}={_payPalReportDetails!.GetStartDateISO()}";
 
                 // Construct URL
                 string transactionURL = $"{_apiData[URL]}{PAYPAL_TRANSACTION_HISTORY_ENDPOINT}?{startDate}&{endDate}&{FIELDS_PARAMETER}";
