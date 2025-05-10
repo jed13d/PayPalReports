@@ -24,7 +24,7 @@ namespace PayPalReports
 
         // debug mode append "/Debug:1"
         private readonly string CLA_DEBUG_MODE_FLAG = "Debug";
-        private readonly string CLA_TRUE = "1";
+        private readonly string CLA_TRUE = "One";
 
         private readonly ILogger<App> LOGGER;
 
@@ -41,8 +41,8 @@ namespace PayPalReports
             else
             {
                 Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Information()
-                    //.MinimumLevel.Debug()
+                    //.MinimumLevel.Information()
+                    .MinimumLevel.Debug()
                     .WriteTo.File(LOG_FILE_PATH, rollingInterval: RollingInterval.Day)
                     .CreateLogger();
             }
@@ -56,6 +56,8 @@ namespace PayPalReports
             HOST = hostBuilder.Build();
             SERVICE_PROVIDER = HOST.Services.GetRequiredService<IServiceProvider>();
             LOGGER = SERVICE_PROVIDER.GetRequiredService<ILogger<App>>();
+
+            LOGGER.LogDebug("Inital debugging message.");
         }
 
         public void App_Startup(object sender, StartupEventArgs e)

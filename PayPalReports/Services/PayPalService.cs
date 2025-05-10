@@ -113,9 +113,11 @@ namespace PayPalReports.Services
         {
             DataEncryptionService des = SERVICE_PROVIDER.GetRequiredService<DataEncryptionService>();
 
-            string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
-
-            _apiData = fileData.Split('\n');
+            if (des.DataFileExists(PAYPAL_DATA_FILE))
+            {
+                string fileData = des.RetrieveData(PAYPAL_DATA_FILE);
+                _apiData = fileData.Split('\n');
+            }
         }
 
         private async Task RequestBalance(string atTime, BalanceDateType balanceDateType)
