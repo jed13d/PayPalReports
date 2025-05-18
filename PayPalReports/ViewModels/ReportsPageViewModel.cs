@@ -6,6 +6,7 @@ using PayPalReports.CustomEvents;
 using PayPalReports.DataModels;
 using PayPalReports.DataModels.PayPalAPI;
 using PayPalReports.Services;
+//using PayPalReports.Services.Mock;
 using System.Windows.Input;
 
 namespace PayPalReports.ViewModels
@@ -123,6 +124,12 @@ namespace PayPalReports.ViewModels
 
             TimeSpan interval = EndDate - StartDate;
 
+            if (StartDate.Month != EndDate.Month)
+            {
+                UpdateStatusText("Start Date and End Date must be in the same month.");
+                return false;
+            }
+
             if (interval.TotalDays <= 0)
             {
                 UpdateStatusText("Start Date must be a date before End Date");
@@ -160,12 +167,14 @@ namespace PayPalReports.ViewModels
                 UpdateStatusText("Making request for data from PayPal.");
 
                 // Begin PayPalService series of requests for data pull
+                //MockPayPalService mockPayPalService = new MockPayPalService();
+                //if (mockPayPalService.TryGetPayPalData(ref payPalReportDetails))
                 if (_payPalService.TryGetPayPalData(ref payPalReportDetails))
                 {
                     // processing delay
                     Thread.Sleep(1000);
 
-                    DebugOutputPayPalReportDetails(payPalReportDetails);
+                    //DebugOutputPayPalReportDetails(payPalReportDetails);
 
                     if (GenerateReport(payPalReportDetails))
                     {

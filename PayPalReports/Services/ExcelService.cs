@@ -44,6 +44,7 @@ namespace PayPalReports.Services
         private readonly int COL_DATE_INT = 1;
         private readonly string COL_REFERENCE = "B";
         private readonly string COL_ACCOUNT = "C";
+        private readonly int COL_ACCOUNT_INT = 3;
         private readonly string COL_NOTES = "D";
         private readonly string COL_DEBIT = "E";
         private readonly int COL_DEBIT_INT = 5;
@@ -87,38 +88,38 @@ namespace PayPalReports.Services
             // Context layer
             if (reportContext == null)
             {
-                UpdateStatusText("Internal error: Data context in ExcelService data validation check.");
+                UpdateStatusText("Data error: Data context in ExcelService data validation check.");
                 return false;
             }
 
             if (string.IsNullOrEmpty(reportContext.OutputPath))
             {
-                UpdateStatusText("Internal error: Output Path missing in ExcelService data validation check.");
+                UpdateStatusText("Data error: Output Path missing in ExcelService data validation check.");
                 return false;
             }
 
             if (reportContext.PayPalReportDetails == null)
             {
-                UpdateStatusText("Internal error: Data missing in ExcelService data validation check.");
+                UpdateStatusText("Data error: Data missing in ExcelService data validation check.");
                 return false;
             }
 
             // Details layer
             if (reportContext.PayPalReportDetails.PayPalEndBalanceResponse == null)
             {
-                UpdateStatusText("Internal error: PayPalEndBalanceResponse missing in ExcelService data validation check.");
+                UpdateStatusText("Data error: PayPalEndBalanceResponse missing in ExcelService data validation check.");
                 return false;
             }
 
             if (reportContext.PayPalReportDetails.PayPalStartBalanceResponse == null)
             {
-                UpdateStatusText("Internal error: PayPalStartBalanceResponse missing in ExcelService data validation check.");
+                UpdateStatusText("Data error: PayPalStartBalanceResponse missing in ExcelService data validation check.");
                 return false;
             }
 
             if (reportContext.PayPalReportDetails.PayPalTransactionResponse == null)
             {
-                UpdateStatusText("Internal error: PayPalTransactionResponse missing in ExcelService data validation check.");
+                UpdateStatusText("Data error: PayPalTransactionResponse missing in ExcelService data validation check.");
                 return false;
             }
 
@@ -212,10 +213,6 @@ namespace PayPalReports.Services
                         // reference 
                         xlsWorksheet.Cells[$"{COL_REFERENCE}{curRow}"].Value = transactionDetails.transaction_info.transaction_id;
 
-                        // account dropdown
-                        var dropdown = xlsWorksheet.DataValidations.AddListValidation($"{COL_ACCOUNT}{curRow}");
-                        dropdown.Formula.ExcelFormula = ACCOUNT_DROPDOWN_VALUES_CELLS_FORMULA;
-
                         // explanation 
                         xlsWorksheet.Cells[$"{COL_NOTES}{curRow}"].Value = $"{transactionDetails.payer_info.email_address} - {transactionDetails.payer_info.payer_name.given_name} - {transactionDetails.transaction_info.transaction_note}";
 
@@ -234,6 +231,9 @@ namespace PayPalReports.Services
                         // balance 
                         xlsWorksheet.Cells[$"{COL_BALANCE}{curRow}"].Formula = CURRENCY_FORMAT;
                         xlsWorksheet.Cells[$"{COL_BALANCE}{curRow}"].Value = double.Parse(transactionDetails.transaction_info.ending_balance.value);
+
+                        // account dropdown
+                        xlsWorksheet.Cells[$"{COL_ACCOUNT}{curRow}"].Value = transactionAmount >= 0f ? DROPDOWN_TABLE_VALUES_C1[1] : DROPDOWN_TABLE_VALUES_C1[4];
 
                         #endregion
 
@@ -312,18 +312,19 @@ namespace PayPalReports.Services
             xlsWorksheet.Cells[CREDIT_TOTAL_CELL].Formula = $"SUM(F8:F{xlsWorksheet.Rows.EndRow})";
             xlsWorksheet.Cells[BALANCE_TOTAL_CELL].Formula = $"{BALANCE_TOTAL_FORMULA}";
 
+            // Account Type Dropdowns
+            ExcelRange colRange = xlsWorksheet.Cells[DATA_START_ROW, COL_ACCOUNT_INT, xlsWorksheet.Rows.EndRow, COL_ACCOUNT_INT];
+            var dropdown = xlsWorksheet.DataValidations.AddListValidation(colRange.Address);
+            dropdown.Formula.ExcelFormula = ACCOUNT_DROPDOWN_VALUES_CELLS_FORMULA;
 
             // Set column widths
-            for (int column = 1; column <= 10; column++)
-            {
-                xlsWorksheet.Columns[1].Width = 21.00;
-                xlsWorksheet.Columns[2].Width = 18.00;
-                xlsWorksheet.Columns[3].Width = 19.00;
-                xlsWorksheet.Columns[4].Width = 50.00;
-                xlsWorksheet.Columns[5, 8].Width = 18.00;
-                xlsWorksheet.Columns[9].Width = 25;
-                xlsWorksheet.Columns[10].Width = 13.57;
-            }
+            xlsWorksheet.Columns[1].Width = 21.00;
+            xlsWorksheet.Columns[2].Width = 18.00;
+            xlsWorksheet.Columns[3].Width = 19.00;
+            xlsWorksheet.Columns[4].Width = 75.00;
+            xlsWorksheet.Columns[5, 8].Width = 18.00;
+            xlsWorksheet.Columns[9].Width = 25;
+            xlsWorksheet.Columns[10].Width = 13.57;
 
         }
 
